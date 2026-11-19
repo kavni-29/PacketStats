@@ -11,6 +11,7 @@ import os
 import queue
 import threading
 import tkinter as tk
+import tkinter.font as tkfont
 import webbrowser
 from itertools import islice
 from pathlib import Path
@@ -49,8 +50,8 @@ class NetScopeGUI(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("NetScope — Network Traffic Analyzer")
-        self.geometry("1150x760")
-        self.minsize(950, 620)
+        self.geometry("1320x860")
+        self.minsize(1040, 700)
 
         # Application state
         self.current_capture_path: Optional[Path] = None
@@ -84,58 +85,77 @@ class NetScopeGUI(tk.Tk):
         except tk.TclError:
             pass
 
-        # Clean color constants
-        self.c_primary = "#1f4e79"
-        self.c_secondary = "#2e75b6"
-        self.c_bg = "#f4f6f9"
-        self.c_card_bg = "#ffffff"
-        self.c_text = "#2b2b2b"
-        self.c_accent = "#d9534f"
+        # Calm, high-contrast pastel palette. Use Lexend when installed and
+        # fall back to a common system font without adding a hard dependency.
+        installed = set(tkfont.families(self))
+        self.ui_font = "Lexend" if "Lexend" in installed else "Segoe UI"
+        self.c_primary = "#465B73"
+        self.c_secondary = "#8BAFA8"
+        self.c_bg = "#F4F6F3"
+        self.c_card_bg = "#FFFFFF"
+        self.c_text = "#34424D"
+        self.c_muted = "#71808A"
+        self.c_accent = "#C77D78"
+        self.c_mint = "#E3F0EB"
+        self.c_lavender = "#EEEAF6"
+        self.c_sand = "#F6F0E3"
+        self.c_border = "#DCE4E2"
 
         self.configure(bg=self.c_bg)
 
-        self.style.configure(".", background=self.c_bg, foreground=self.c_text, font=("Segoe UI", 9))
+        self.style.configure(".", background=self.c_bg, foreground=self.c_text, font=(self.ui_font, 10))
         self.style.configure("TFrame", background=self.c_bg)
-        self.style.configure("Header.TFrame", background=self.c_primary)
-        self.style.configure("Card.TFrame", background=self.c_card_bg, relief="groove")
+        self.style.configure("Header.TFrame", background="#E8EFEB")
+        self.style.configure("Card.TFrame", background=self.c_card_bg, relief="flat")
+        self.style.configure("TLabelframe", background=self.c_bg, bordercolor=self.c_border, relief="solid")
+        self.style.configure("TLabelframe.Label", background=self.c_bg, foreground=self.c_primary, font=(self.ui_font, 10, "bold"))
+        self.style.configure("TNotebook", background=self.c_bg, borderwidth=0, tabmargins=(2, 5, 2, 0))
+        self.style.configure("TNotebook.Tab", background="#E8ECE9", foreground=self.c_primary, padding=(14, 9), font=(self.ui_font, 9, "bold"))
+        self.style.map("TNotebook.Tab", background=[("selected", self.c_card_bg), ("active", "#DFEAE5")], foreground=[("selected", self.c_primary)])
+        self.style.configure("TEntry", fieldbackground="#FFFFFF", foreground=self.c_text, padding=7)
+        self.style.configure("TCombobox", fieldbackground="#FFFFFF", padding=5)
+        self.style.configure("TProgressbar", troughcolor="#E2EAE6", background=self.c_secondary)
 
         self.style.configure(
             "TButton",
-            font=("Segoe UI", 9, "bold"),
-            padding=5,
+            font=(self.ui_font, 9, "bold"),
+            padding=(10, 7),
         )
         self.style.configure(
             "Primary.TButton",
-            font=("Segoe UI", 9, "bold"),
-            foreground="#ffffff",
-            background=self.c_secondary,
-            padding=6,
+            font=(self.ui_font, 9, "bold"),
+            foreground="#FFFFFF",
+            background="#789D95",
+            padding=(12, 8),
         )
-        self.style.map("Primary.TButton", background=[("active", self.c_primary)])
+        self.style.map("Primary.TButton", background=[("active", "#658A82"), ("disabled", "#C9D7D2")])
+        self.style.configure("TButton", foreground=self.c_primary, bordercolor=self.c_border, background="#FFFFFF")
+        self.style.map("TButton", background=[("active", "#E7EFEB")])
 
         self.style.configure(
             "Treeview",
-            background="#ffffff",
-            foreground="#2b2b2b",
-            rowheight=24,
-            fieldbackground="#ffffff",
-            font=("Segoe UI", 9),
+            background="#FFFFFF",
+            foreground=self.c_text,
+            rowheight=29,
+            fieldbackground="#FFFFFF",
+            font=(self.ui_font, 9),
         )
         self.style.configure(
             "Treeview.Heading",
-            font=("Segoe UI", 9, "bold"),
-            background="#e9ecef",
-            foreground="#1f4e79",
-            padding=4,
+            font=(self.ui_font, 9, "bold"),
+            background="#E6EEEA",
+            foreground=self.c_primary,
+            padding=(7, 8),
         )
-        self.style.map("Treeview.Heading", background=[("active", "#d0d7de")])
+        self.style.map("Treeview.Heading", background=[("active", "#D8E5DF")])
+        self.style.map("Treeview", background=[("selected", "#DCEBE5")], foreground=[("selected", self.c_text)])
 
         # Alert severity tags
         self.tag_colors = {
-            "CRITICAL": "#ffcccc",
-            "HIGH": "#ffe0cc",
-            "MEDIUM": "#fff3cd",
-            "LOW": "#e2e3e5",
+            "CRITICAL": "#F3D9DE",
+            "HIGH": "#F5E0D5",
+            "MEDIUM": "#F5EED8",
+            "LOW": "#E5E9E8",
         }
 
     def _build_ui(self) -> None:
@@ -147,18 +167,18 @@ class NetScopeGUI(tk.Tk):
         lbl_title = tk.Label(
             header,
             text="NetScope — Network Traffic Analyzer",
-            font=("Segoe UI", 14, "bold"),
-            fg="#ffffff",
-            bg=self.c_primary,
+            font=(self.ui_font, 16, "bold"),
+            fg=self.c_primary,
+            bg="#E8EFEB",
         )
         lbl_title.pack(side="left")
 
         lbl_subtitle = tk.Label(
             header,
             text="Offline analysis and interface-based live monitoring",
-            font=("Segoe UI", 9, "italic"),
-            fg="#d0e1fd",
-            bg=self.c_primary,
+            font=(self.ui_font, 9),
+            fg=self.c_muted,
+            bg="#E8EFEB",
         )
         lbl_subtitle.pack(side="left", padx=15)
 
@@ -245,14 +265,16 @@ class NetScopeGUI(tk.Tk):
         ]
 
         for idx, (title, default_val) in enumerate(card_defs):
-            c = tk.Frame(cards_frame, bg=self.c_card_bg, relief="ridge", bd=1)
-            c.grid(row=0, column=idx, padx=5, sticky="nsew")
+            tile_colors = (self.c_mint, self.c_lavender, "#E8F0F5", self.c_sand, "#EAF0E4", "#F5E5E3")
+            tile_bg = tile_colors[idx % len(tile_colors)]
+            c = tk.Frame(cards_frame, bg=tile_bg, relief="flat", bd=0, highlightthickness=1, highlightbackground=self.c_border)
+            c.grid(row=0, column=idx, padx=5, pady=4, sticky="nsew")
             cards_frame.grid_columnconfigure(idx, weight=1)
 
-            lbl_t = tk.Label(c, text=title, font=("Segoe UI", 8, "bold"), fg="#6c757d", bg=self.c_card_bg)
-            lbl_t.pack(anchor="w", padx=8, pady=(6, 2))
-            lbl_v = tk.Label(c, text=default_val, font=("Segoe UI", 14, "bold"), fg=self.c_primary, bg=self.c_card_bg)
-            lbl_v.pack(anchor="w", padx=8, pady=(0, 6))
+            lbl_t = tk.Label(c, text=title, font=(self.ui_font, 8, "bold"), fg=self.c_muted, bg=tile_bg)
+            lbl_t.pack(anchor="w", padx=11, pady=(9, 3))
+            lbl_v = tk.Label(c, text=default_val, font=(self.ui_font, 15, "bold"), fg=self.c_primary, bg=tile_bg)
+            lbl_v.pack(anchor="w", padx=11, pady=(0, 9))
             self.metric_cards[title] = lbl_v
 
         # Capture Details & Protocols split
