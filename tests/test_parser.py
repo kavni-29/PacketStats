@@ -5,6 +5,7 @@ import pytest
 from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import ICMP, IP, TCP, UDP
 from scapy.layers.inet6 import IPv6
+from scapy.layers.igmp import IGMP
 from scapy.layers.l2 import Ether
 from scapy.utils import wrpcap
 
@@ -98,6 +99,15 @@ def test_icmp_no_transport_ports(tmp_path: Path):
     assert rec.dst_ip == "8.8.4.4"
     assert rec.src_port is None
     assert rec.dst_port is None
+
+
+def test_igmp_is_classified_as_igmp_with_message_metadata(tmp_path: Path):
+    pcap = tmp_path / "igmp.pcap"
+    wrpcap(str(pcap), [Ether() / IP(src="192.0.2.1", dst="224.0.0.22") / IGMP(type=0x16, gaddr="239.1.2.3")])
+    records, _ = parse_capture(pcap)
+    assert records[0].protocol == "IGMP"
+    assert records[0].details["igmp_type"] == 0x16
+    assert records[0].details["igmp_group"] == "239.1.2.3"
 
 
 def test_dns_metadata_extraction(tmp_path: Path):

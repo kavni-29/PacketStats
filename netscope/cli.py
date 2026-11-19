@@ -92,7 +92,12 @@ def print_terminal_summary(
     print(f"  Target Capture      : {summary.capture_file}")
     print(f"  File Size           : {summary.file_size_bytes:,} bytes")
     print(f"  Packets Processed   : {green(f'{summary.packets_processed:,}')}")
-    print(f"  Packets Skipped     : {summary.packets_skipped + summary.packets_partial:,}")
+    print(f"  Packets Captured    : {summary.packets_captured:,}")
+    print(f"  Parse Errors        : {summary.packets_failed:,}")
+    print(f"  Partial Parses      : {summary.packets_partial:,}")
+    print(f"  Classified Packets  : {summary.packets_classified:,}")
+    print(f"  Packets in Flows    : {summary.packets_in_flows:,}")
+    print(f"  No Flow Endpoints   : {summary.packets_without_flow_endpoints:,}")
     print(f"  Total Volume        : {summary.total_bytes:,} bytes ({summary.total_bytes / (1024*1024):.2f} MB)")
     print(f"  Capture Duration    : {summary.capture_duration_seconds:.2f} seconds")
     print(f"  Distinct Endpoints  : {summary.distinct_endpoints:,}")
@@ -197,7 +202,8 @@ def run_analysis_pipeline(
     capture_path: str | Path,
     config: Optional[DetectionConfig] = None,
     max_packets: Optional[int] = None,
-) -> tuple[AnalysisSummary, StatisticsReport, List[FlowRecord], List[AlertRecord]]:
+    include_packets: bool = False,
+) -> tuple:
     """Execute the core analysis pipeline shared by CLI and GUI."""
     cfg = config or DetectionConfig()
     cfg.validate()
@@ -229,8 +235,15 @@ def run_analysis_pipeline(
         capture_start_time=stats.capture_start_ts,
         capture_end_time=stats.capture_end_ts,
         capture_duration_seconds=stats.capture_duration_sec,
+        packets_captured=metrics.total_read,
+        packets_failed=metrics.parsed_error,
+        packets_classified=sum(proto_obs.values()),
+        packets_in_flows=sum(flow.total_packets for flow in flows),
+        packets_without_flow_endpoints=max(0, metrics.total_read - sum(flow.total_packets for flow in flows)),
     )
 
+    if include_packets:
+        return summary, stats, flows, alerts, packets
     return summary, stats, flows, alerts
 
 

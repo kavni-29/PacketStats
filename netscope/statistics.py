@@ -139,6 +139,12 @@ class StatisticsReport:
     traffic_concentration_top1_pct: float = 0.0
     traffic_concentration_top3_pct: float = 0.0
     traffic_concentration_top5_pct: float = 0.0
+    # Source-originated share counts each packet once, by source endpoint. This
+    # is distinct from endpoint participation (sent + received), which can sum
+    # to 200% because a packet has two endpoints.
+    source_concentration_top1_pct: float = 0.0
+    source_concentration_top3_pct: float = 0.0
+    source_concentration_top5_pct: float = 0.0
 
 
 def compute_packet_size_statistics(packets: List[PacketRecord]) -> PacketSizeStatistics:
@@ -349,11 +355,17 @@ def calculate_statistics(
     top_destinations = sorted(all_eps, key=lambda e: e.packets_received, reverse=True)[:10]
     top_talkers_by_bytes = sorted(all_eps, key=lambda e: e.total_bytes, reverse=True)[:10]
 
-    # Traffic concentration ratios
+    # Participation can exceed 100% across endpoints: each packet contributes
+    # once to its source and once to its destination. Keep it as a participation
+    # metric, and separately calculate source-originated shares for detectors.
     sorted_by_packets = sorted(all_eps, key=lambda e: e.total_packets, reverse=True)
     top1_pct = (sorted_by_packets[0].total_packets / total_packets * 100.0) if sorted_by_packets and total_packets > 0 else 0.0
     top3_pct = (sum(e.total_packets for e in sorted_by_packets[:3]) / total_packets * 100.0) if sorted_by_packets and total_packets > 0 else 0.0
     top5_pct = (sum(e.total_packets for e in sorted_by_packets[:5]) / total_packets * 100.0) if sorted_by_packets and total_packets > 0 else 0.0
+    sorted_by_sent = sorted(all_eps, key=lambda e: e.packets_sent, reverse=True)
+    source_top1 = (sorted_by_sent[0].packets_sent / total_packets * 100.0) if sorted_by_sent and total_packets else 0.0
+    source_top3 = (sum(e.packets_sent for e in sorted_by_sent[:3]) / total_packets * 100.0) if total_packets else 0.0
+    source_top5 = (sum(e.packets_sent for e in sorted_by_sent[:5]) / total_packets * 100.0) if total_packets else 0.0
 
     return StatisticsReport(
         total_packets=total_packets,
@@ -371,4 +383,7 @@ def calculate_statistics(
         traffic_concentration_top1_pct=round(top1_pct, 2),
         traffic_concentration_top3_pct=round(top3_pct, 2),
         traffic_concentration_top5_pct=round(top5_pct, 2),
+        source_concentration_top1_pct=round(source_top1, 2),
+        source_concentration_top3_pct=round(source_top3, 2),
+        source_concentration_top5_pct=round(source_top5, 2),
     )

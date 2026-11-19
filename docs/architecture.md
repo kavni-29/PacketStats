@@ -1,99 +1,69 @@
-# NetScope Technical Architecture Specification
+# Architecture
 
-## 1. Architectural Principles
+## Scope
 
-NetScope is engineered around five core software design principles:
-1. **Decoupled Core Engine**: The parsing, flow aggregation, statistical analysis, and detection logic are entirely independent of GUI and CLI presentation layers.
-2. **Defensive Analysis Sources**: Offline sources read saved PCAP/PCAPNG files; live capture opens only the interface explicitly selected by the user and never transmits packets.
-3. **Bounded Memory Ingestion**: Offline parsing can stream files; live analysis retains a capped recent packet history and flow table, and recording is opt-in.
-4. **Deterministic Canonical Keying**: Bidirectional network flows are identified through deterministic endpoint pair canonicalization, ensuring symmetric packet grouping regardless of capture initiation direction.
-5. **Non-Blocking UI Concurrency**: Long-running packet analysis is delegated to background worker threads, communicating status and results to Tkinter through thread-safe message queues.
+NetScope is a Python 3.10+ application with a Scapy analysis core, a Tkinter/ttk desktop interface, a CLI, and local export utilities. Offline parsing and live capture share packet, flow, statistics, and detection models. Live capture is passive: NetScope does not transmit or inject packets.
 
----
+## Package map
 
-## 2. Component Structure and Responsibilities
+| Module | Responsibility |
+| --- | --- |
+| `models.py` | Packet, flow, alert, and analysis summary dataclasses. |
+| `parser.py` | Validate and read PCAP/PCAPNG via Scapy; normalize primary protocol and decoded header metadata. |
+| `flows.py` | Canonical bidirectional flow keys and directional packet/byte accounting. |
+| `statistics.py` | Protocol, endpoint, packet-size, and time-bucket metrics. |
+| `config.py` | Detector and processing configuration with validation and JSON load/save. |
+| `detectors.py` | Six explainable threshold/statistics-based anomaly detectors. |
+| `live.py` | Interface discovery, Scapy capture lifecycle, bounded recent history, and optional PCAPNG recording. |
+| `reporting.py` | CSV, JSON, Markdown, and PDF report output. |
+| `visualisation.py` | Matplotlib charts and PNG export. |
+| `cli.py` | CLI commands and the shared offline analysis pipeline. |
+| `gui.py` | Tkinter desktop application; analysis and report work run in worker threads. |
 
-```
-netscope/
-├── __init__.py         # Package exports and version metadata
-├── cli.py              # Command-line interface with argparse and terminal formatting
-├── config.py           # Configuration dataclasses, validation, and JSON serialization
-├── detectors.py        # Rule-based explainable anomaly detection engine
-├── exceptions.py       # Custom typed exception hierarchy
-├── flows.py            # Bidirectional network flow aggregation engine
-├── gui.py              # Tkinter/ttk desktop GUI with asynchronous worker threading
-├── live.py             # Scapy interface discovery, capture lifecycle, bounded live analysis
-├── models.py           # Dataclasses for PacketRecord, FlowKey, FlowRecord, AlertRecord, Summary
-├── parser.py           # Scapy streaming reader, protocol extractors, wire-length logic
-├── reporting.py        # CSV, JSON, Markdown, and PDF report export generators
-└── visualisation.py    # Decoupled Matplotlib chart creation routines
-```
-
-### Module Breakdown
-
-| Module | Primary Responsibility | Key Classes / Functions |
-|---|---|---|
-| `models` | Formal data schema definitions. | `PacketRecord`, `FlowKey`, `FlowRecord`, `AlertRecord`, `AnalysisSummary` |
-| `exceptions` | Domain error hierarchy. | `InvalidCaptureError`, `UnsupportedCaptureFormatError`, `ConfigurationError` |
-| `config` | Centralized detection and runtime parameters. | `DetectionConfig` |
-| `parser` | Incremental PCAP dissection and validation. | `validate_capture_file`, `stream_packets`, `parse_capture` |
-| `live` | Interface discovery, Scapy capture lifecycle, incremental processing and bounded history. | `discover_interfaces`, `LiveCaptureSession`, `LiveAnalyzer` |
-| `flows` | Bidirectional flow keying and accounting. | `FlowAggregator`, `aggregate_flows` |
-| `statistics` | Protocol distributions, rankings, percentiles. | `calculate_statistics`, `compute_packet_size_statistics` |
-| `detectors` | Explainable anomaly evaluation. | `BaseDetector`, `DetectionEngine`, 6 Rule Implementations |
-| `reporting` | Multi-format export routines. | `export_flows_csv`, `export_json`, `export_markdown_report` |
-| `visualisation` | Standalone figure generation. | `plot_protocol_distribution`, `plot_traffic_over_time`, `save_all_charts` |
-| `cli` | Terminal execution and stdout tables. | `run_analysis_pipeline`, `main` |
-| `gui` | Interactive desktop application. | `NetScopeGUI`, `launch_gui` |
-
----
-
-## 3. Data Processing Pipeline
+## Offline pipeline
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User (CLI / GUI)
-    participant Parser as netscope.parser
-    participant FlowEngine as netscope.flows
-    participant StatsEngine as netscope.statistics
-    participant DetectEngine as netscope.detectors
-    participant Reporting as netscope.reporting / visualisation
-
-    alt Offline file
-        User->>Parser: stream_packets(file_path)
-        Parser-->>User: PacketRecords
-    else Live interface
-        User->>Parser: AsyncSniffer packet callback
-        Parser-->>User: normalized PacketRecord
-    end
-    User->>FlowEngine: aggregate_flows(PacketRecords)
-    FlowEngine-->>User: List[FlowRecord]
-    User->>StatsEngine: calculate_statistics(PacketRecords, FlowRecords)
-    StatsEngine-->>User: StatisticsReport
-    User->>DetectEngine: DetectionEngine.run(PacketRecords, FlowRecords, StatisticsReport)
-    DetectEngine-->>User: List[AlertRecord]
-    User->>Reporting: Export CSV / JSON / Markdown / PDF / Charts
+flowchart LR
+    A[PCAP or PCAPNG] --> B[Scapy reader]
+    B --> C[PacketRecord plus parse status]
+    C --> D[Protocol and endpoint statistics]
+    C --> E[Bidirectional flow aggregation]
+    C --> F[Six anomaly rules]
+    D --> F
+    E --> F
+    D --> G[CLI or GUI]
+    E --> G
+    F --> G
+    G --> H[CSV, JSON, Markdown, PDF, PNG]
 ```
 
----
+`stream_packets()` yields records incrementally. The current full offline analysis pipeline collects records in memory because statistics, detector evaluation, and the GUI Packet Explorer use the capture-wide packet collection. The Packet Explorer limits visible rows to 500 per page; this does not bound total analysis memory for large files.
 
-## 4. Concurrency and Threading Model
+## Packet lifecycle and accounting
 
-Tkinter's main event loop (`mainloop()`) is single-threaded. Performing CPU-bound packet dissection or mathematical aggregation on the main thread would freeze window painting, dragging, and tab switching.
+The parser yields one normalized `PacketRecord` for each frame Scapy returns. A record has a primary protocol label and `OK`, `PARTIAL`, or `ERROR` parse status. Parser errors yielded as records use `CORRUPTED`. See [data_model.md](data_model.md) for exact counter definitions and byte accounting.
 
-### Architecture:
-1. **Worker Thread**: Analysis runs in a background daemon thread (`threading.Thread(target=self._worker_analysis, daemon=True)`).
-2. **Message Queue**: Thread-safe communication occurs via `queue.Queue`.
-3. **Event Polling**: The main GUI thread schedules periodic queue inspection using `self.after(100, self._poll_queue)`.
-4. **State Isolation**: GUI components and Treeview tables are modified solely within the main thread upon dequeuing completion events.
-5. **Live Capture Lifecycle**: Scapy capture and packet processing run outside Tk; a bounded event queue carries counters and alerts to the GUI polling loop. Capture shutdown closes any PCAPNG writer.
+Flow aggregation requires source and destination IP addresses. Link-layer-only, failed, and otherwise endpoint-incomplete records remain part of capture and protocol statistics but cannot be assigned to an IP flow. A packet contributes once to each endpoint's participation counters, while source-share calculations attribute it once to its source.
 
----
+## Flow key and direction
 
-## 5. Computational Complexity
+`FlowKey.build()` canonicalizes the two `(address, port)` endpoints lexicographically and includes the primary protocol. Reversing source and destination therefore gives the same key. Directional counters attribute a packet to A→B when its source matches endpoint A; otherwise it contributes to B→A. Flow timestamps track minimum and maximum observed timestamps, including out-of-order input.
 
-- **Packet Parsing**: $O(N)$ time, where $N$ is the number of packets in the capture. Space is bounded by $O(N)$ when fully buffered or $O(1)$ when streamed.
-- **Flow Aggregation**: $O(N)$ amortized time. Hashing canonical `FlowKey` tuples yields $O(1)$ dictionary lookups. Offline space is $O(F)$; live flow and packet retention have configurable caps.
-- **Statistical Percentiles**: $O(N \log N)$ time for array sorting via NumPy.
-- **Sliding-Window Detectors**: $O(P \log P)$ time for sorting timestamps per endpoint, followed by a two-pointer scan with $O(P)$ time, where $P \le N$.
+## GUI threading
+
+Tk widgets are accessed on the Tk main thread. Offline analysis runs in a worker thread and sends completion/error messages through a thread-safe queue; the main loop polls the queue and updates the widgets. Live capture uses Scapy's asynchronous capture lifecycle and forwards bounded UI events. Capture history and event queues are bounded; offline analysis still buffers its packet records.
+
+## Protocol and privacy boundaries
+
+The parser exposes metadata Scapy decodes (including common IPv4/IPv6, transport, DNS, ARP, ICMP, and IGMP fields). This is not a complete protocol dissector. TLS/HTTPS application contents are not decrypted. Packet records do not retain raw payload bytes; the GUI packet detail pane shows decoded header fields, not a raw hex dump.
+
+## Performance notes
+
+- Parsing is O(N) in packet count; streaming iteration itself is incremental.
+- The shared offline pipeline retains O(N) packet records and computes flow state in O(F), where F is distinct flows.
+- GUI table rendering is paginated, but filtering scans the in-memory packet list.
+- Live history, flows, and event delivery use configured bounds.
+
+## Extension points
+
+New analyses should consume `PacketRecord` and return typed results in a separate module. Keep packet capture, parsing, analysis, presentation, and export code separated. Document evidence and limits for any new heuristic; do not describe indicators as proof of an attack.

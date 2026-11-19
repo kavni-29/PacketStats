@@ -385,7 +385,10 @@ class TrafficConcentrationDetector(BaseDetector):
 
         alert_idx = 1
         for ep, metric in stats.endpoints.items():
-            ratio = metric.total_packets / total_packets
+            # Traffic share is source-originated: every packet is attributed
+            # once, to its source. Endpoint participation remains available in
+            # the endpoint table but is not a packet-volume share.
+            ratio = metric.packets_sent / total_packets
             if ratio >= threshold_ratio:
                 severity = "MEDIUM" if ratio >= 0.80 else self.default_severity
                 alerts.append(
@@ -396,19 +399,20 @@ class TrafficConcentrationDetector(BaseDetector):
                         severity=severity,
                         endpoint=ep,
                         time_window="Capture Duration",
-                        observed_value=f"{ratio:.1%} ({metric.total_packets}/{total_packets} packets)",
-                        threshold=f">={threshold_ratio:.1%} of capture volume",
+                        observed_value=f"{ratio:.1%} ({metric.packets_sent}/{total_packets} packets sourced)",
+                        threshold=f">={threshold_ratio:.1%} of captured packet count, by source",
                         explanation=(
-                            f"Traffic concentration indicator: Endpoint {ep} accounted for {metric.total_packets} "
-                            f"out of {total_packets} captured packets ({ratio:.1%})."
+                            f"Source traffic concentration indicator: {ep} originated {metric.packets_sent} "
+                            f"of {total_packets} captured packets ({ratio:.1%})."
                         ),
                         evidence_summary=(
-                            f"Endpoint total packets: {metric.total_packets}, bytes: {metric.total_bytes:,}. "
+                            f"Packets originated: {metric.packets_sent}; endpoint participation: {metric.total_packets}; bytes participated: {metric.total_bytes:,}. "
                             f"Ratio: {ratio:.3f} >= threshold {threshold_ratio}."
                         ),
                         supporting_metadata={
                             "endpoint": ep,
                             "endpoint_packets": metric.total_packets,
+                            "source_packets": metric.packets_sent,
                             "endpoint_bytes": metric.total_bytes,
                             "total_capture_packets": total_packets,
                             "ratio": round(ratio, 4),

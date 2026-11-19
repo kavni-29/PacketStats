@@ -98,3 +98,17 @@ def test_time_series_interval_buckets():
     assert buckets[0].byte_count == 300
     assert buckets[1].packet_count == 1
     assert buckets[1].byte_count == 150
+
+
+def test_source_share_is_bounded_while_participation_is_distinct():
+    """Concentration shares attribute each packet once to its source."""
+    packets = [
+        PacketRecord.create(i, 1.0 + i, "2001:db8::1", "2001:db8::2", "UDP", length=10)
+        for i in range(1, 8)
+    ]
+    report = calculate_statistics(packets)
+    assert report.source_concentration_top1_pct == pytest.approx(100.0)
+    assert report.source_concentration_top3_pct <= 100.0
+    assert report.traffic_concentration_top1_pct == pytest.approx(100.0)
+    # Participation sums to 200% across both endpoints, by definition.
+    assert sum(ep.total_packets for ep in report.endpoints.values()) == 2 * len(packets)
