@@ -1,8 +1,8 @@
-# NetScope Explainable Anomaly Detection Rules Specification
+# PacketStats Explainable Anomaly Detection Rules Specification
 
 ## 1. Overview & Detection Philosophy
 
-NetScope operates on **transparent, explainable heuristics** rather than opaque machine-learning classifiers. Every alert produced must be:
+PacketStats operates on **transparent, explainable heuristics** rather than opaque machine-learning classifiers. Every alert produced must be:
 - **Auditable**: Traced to specific observed packet indices, timestamps, and addresses.
 - **Configurable**: Thresholds and timing windows can be altered via JSON configuration without touching source code.
 - **Honest & Defensive**: Communicated as an indicator requiring investigation rather than a definitive assertion of hostility.

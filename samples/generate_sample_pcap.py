@@ -1,4 +1,4 @@
-"""Synthetic PCAP Generator for NetScope Demonstration.
+"""Synthetic PCAP Generator for PacketStats Demonstration.
 
 Generates a 100% synthetic, legally clean packet capture containing normal
 multi-protocol network traffic (HTTP, DNS, ICMP, IPv6) alongside controlled
@@ -80,7 +80,7 @@ def generate_synthetic_capture(output_path: str | Path) -> Path:
         Ether(src="00:11:22:33:44:01", dst="00:11:22:33:44:fe")
         / IP(src="192.168.1.105", dst="93.184.216.34")
         / TCP(sport=49152, dport=80, flags="PA", seq=1001, ack=5001)
-        / b"GET /index.html HTTP/1.1\r\nHost: example.com\r\nUser-Agent: NetScope-Synthetic\r\n\r\n"
+        / b"GET /index.html HTTP/1.1\r\nHost: example.com\r\nUser-Agent: PacketStats-Synthetic\r\n\r\n"
     )
     http_req.time = base_ts + 0.3
     packets.append(http_req)
@@ -111,7 +111,7 @@ def generate_synthetic_capture(output_path: str | Path) -> Path:
             Ether(src="00:11:22:33:44:01", dst="00:11:22:33:44:fe")
             / IP(src="192.168.1.105", dst="8.8.8.8")
             / ICMP(type=8, code=0, id=1234, seq=seq_num)
-            / (b"NETSCOPE_PING" * 4)
+            / (b"PacketStats_PING" * 4)
         )
         echo_req.time = base_ts + 1.0 + seq_num
         packets.append(echo_req)
@@ -120,7 +120,7 @@ def generate_synthetic_capture(output_path: str | Path) -> Path:
             Ether(src="00:11:22:33:44:fe", dst="00:11:22:33:44:01")
             / IP(src="8.8.8.8", dst="192.168.1.105")
             / ICMP(type=0, code=0, id=1234, seq=seq_num)
-            / (b"NETSCOPE_PING" * 4)
+            / (b"PacketStats_PING" * 4)
         )
         echo_rep.time = base_ts + 1.05 + seq_num
         packets.append(echo_rep)

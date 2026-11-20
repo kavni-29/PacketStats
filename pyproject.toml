@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netscope"
+name = "PacketStats"
 version = "1.0.0"
-description = "NetScope — Network Traffic Analyzer & Explainable Anomaly Detection System"
+description = "PacketStats — Network Traffic Analyzer & Explainable Anomaly Detection System"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "NetScope Contributor" }
+    { name = "PacketStats Contributor" }
 ]
 dependencies = [
     "scapy>=2.5.0",
@@ -26,10 +26,10 @@ dev = [
 ]
 
 [project.scripts]
-netscope = "netscope.cli:main"
+packetstats = "packetstats.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["netscope*"]
+include = ["packetstats*"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"

@@ -1,4 +1,4 @@
-"""NetScope reporting and export engine.
+"""PacketStats reporting and export engine.
 
 Generates tabular CSV exports for flows, endpoints, alerts, and packets,
 structured JSON exports for programmatic integration, and comprehensive
@@ -16,10 +16,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from netscope.config import DetectionConfig
-from netscope.exceptions import ExportError
-from netscope.models import AlertRecord, AnalysisSummary, FlowRecord, PacketRecord
-from netscope.statistics import EndpointMetric, StatisticsReport
+from packetstats.config import DetectionConfig
+from packetstats.exceptions import ExportError
+from packetstats.models import AlertRecord, AnalysisSummary, FlowRecord, PacketRecord
+from packetstats.statistics import EndpointMetric, StatisticsReport
 
 
 def export_pdf_report(
@@ -33,14 +33,14 @@ def export_pdf_report(
     mode: str = "offline",
     interface: Optional[str] = None,
 ) -> Path:
-    """Write a paginated PDF analysis report with reusable NetScope charts."""
+    """Write a paginated PDF analysis report with reusable PacketStats charts."""
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
-    from netscope.visualisation import save_all_charts
+    from packetstats.visualisation import save_all_charts
 
     path = Path(file_path)
     try:
@@ -76,14 +76,14 @@ def export_pdf_report(
             canvas.line(18 * mm, 14 * mm, doc.pagesize[0] - 18 * mm, 14 * mm)
             canvas.setFont("Helvetica", 8)
             canvas.setFillColor(colors.HexColor("#52616b"))
-            canvas.drawString(18 * mm, 9 * mm, f"NetScope • Defensive traffic analysis • {generated}")
+            canvas.drawString(18 * mm, 9 * mm, f"PacketStats • Defensive traffic analysis • {generated}")
             canvas.drawRightString(doc.pagesize[0] - 18 * mm, 9 * mm, f"Page {doc.page}")
             canvas.restoreState()
 
         doc = SimpleDocTemplate(str(path), pagesize=A4, rightMargin=18 * mm, leftMargin=18 * mm, topMargin=17 * mm, bottomMargin=20 * mm, pageCompression=0)
-        doc.title = "NetScope Network Traffic Analysis Report"
-        doc.author = "NetScope"
-        story = [Paragraph("NetScope", styles["ReportTitle"]), Paragraph("Network Traffic Analysis Report", styles["Heading1"]),
+        doc.title = "PacketStats Network Traffic Analysis Report"
+        doc.author = "PacketStats"
+        story = [Paragraph("PacketStats", styles["ReportTitle"]), Paragraph("Network Traffic Analysis Report", styles["Heading1"]),
                  Paragraph(f"Generated {generated} | Mode: {safe(mode.title())} analysis", styles["Normal"]),
                  Paragraph(f"Source: {safe(summary.capture_file)}" + (f" | Interface: {safe(interface)}" if interface else ""), styles["Normal"]), Spacer(1, 8),
                  Paragraph("Executive Summary", styles["Section"]),
@@ -135,14 +135,14 @@ def export_pdf_report(
         has_visual_data = bool(stats.protocols or stats.time_series or stats.endpoints or stats.packet_sizes.count or alerts)
         if has_visual_data:
             story.append(Paragraph("Traffic Visualisations", styles["Section"]))
-            with tempfile.TemporaryDirectory(prefix="netscope-pdf-") as temp_dir:
+            with tempfile.TemporaryDirectory(prefix="PacketStats-pdf-") as temp_dir:
                 chart_paths = save_all_charts(stats, alerts, temp_dir)
                 for chart_path in chart_paths:
                     chart = Image(io.BytesIO(chart_path.read_bytes()), width=165 * mm, height=90 * mm, kind="proportional")
                     story.append(KeepTogether([chart, Spacer(1, 5)]))
 
         story += [Paragraph("Methodology and Limitations", styles["Section"]),
-                  Paragraph("NetScope aggregates packet metadata into canonical bidirectional flows and evaluates configurable deterministic rules for packet rates, destination-port diversity, TCP SYN ratios, volume deviations, traffic concentration, and repeated communication. Encryption limits application visibility; no payload decryption, full TCP state reconstruction, or attack attribution is performed. Benign workloads and network conditions can trigger indicators.", styles["BodyText"])]
+                  Paragraph("PacketStats aggregates packet metadata into canonical bidirectional flows and evaluates configurable deterministic rules for packet rates, destination-port diversity, TCP SYN ratios, volume deviations, traffic concentration, and repeated communication. Encryption limits application visibility; no payload decryption, full TCP state reconstruction, or attack attribution is performed. Benign workloads and network conditions can trigger indicators.", styles["BodyText"])]
         doc.build(story, onFirstPage=footer, onLaterPages=footer)
         return path
     except Exception as exc:
@@ -343,7 +343,7 @@ def export_json(
         data = {
             "metadata": {
                 "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-                "generator": "NetScope 1.0.0",
+                "generator": "PacketStats 1.0.0",
                 "capture_file": summary.capture_file,
                 "file_size_bytes": summary.file_size_bytes,
             },
@@ -382,7 +382,7 @@ def export_json(
             ],
             "alerts": [a.to_dict() for a in alerts],
             "defensive_security_notice": (
-                "NetScope is an offline defensive analysis tool. Anomaly indicators signify "
+                "PacketStats is an offline defensive analysis tool. Anomaly indicators signify "
                 "statistical deviations or traffic patterns requiring triage; they do not constitute "
                 "conclusive evidence of hostile intrusion."
             ),
@@ -406,7 +406,7 @@ def generate_markdown_report(
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines: List[str] = [
-        "# NetScope — Network Traffic Analysis Report",
+        "# PacketStats — Network Traffic Analysis Report",
         f"**Generated:** {now_str}  ",
         f"**Target Capture:** `{summary.capture_file}` ({summary.file_size_bytes:,} bytes)  ",
         f"**Analysis Runtime:** {summary.analysis_duration_seconds:.2f} seconds  ",
@@ -553,8 +553,8 @@ def generate_markdown_report(
         "",
         "## 8. Defensive Security Scope & Analytical Limitations",
         "",
-        "- **Metadata vs Payload:** NetScope inspects packet headers and flow timing. Transport Layer Security (TLS) and application encryption prevent payload inspection; encrypted application content is neither decrypted nor inferred.",
-        "- **Flow Grouping vs State Reconstruction:** NetScope groups packets into bidirectional flows. It does not perform full TCP stack emulation, connection state reconstruction, or retransmission tracking.",
+        "- **Metadata vs Payload:** PacketStats inspects packet headers and flow timing. Transport Layer Security (TLS) and application encryption prevent payload inspection; encrypted application content is neither decrypted nor inferred.",
+        "- **Flow Grouping vs State Reconstruction:** PacketStats groups packets into bidirectional flows. It does not perform full TCP stack emulation, connection state reconstruction, or retransmission tracking.",
         "- **Explainable Indicators vs Definitive Attribution:** Anomaly rules identify traffic that departs from expected baselines or matches scanning heuristics. High volume, destination port diversity, and high SYN ratios can be caused by legitimate applications, network drops, or asymmetric routing.",
     ])
 

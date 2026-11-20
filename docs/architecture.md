@@ -1,8 +1,8 @@
-# NetScope Technical Architecture Specification
+# PacketStats Technical Architecture Specification
 
 ## 1. Architectural Principles
 
-NetScope is engineered around five core software design principles:
+PacketStats is engineered around five core software design principles:
 1. **Decoupled Core Engine**: The parsing, flow aggregation, statistical analysis, and detection logic are entirely independent of GUI and CLI presentation layers.
 2. **Defensive Analysis Sources**: Offline sources read saved PCAP/PCAPNG files; live capture opens only the interface explicitly selected by the user and never transmits packets.
 3. **Bounded Memory Ingestion**: Offline parsing can stream files; live analysis retains a capped recent packet history and flow table, and recording is opt-in.
@@ -14,7 +14,7 @@ NetScope is engineered around five core software design principles:
 ## 2. Component Structure and Responsibilities
 
 ```
-netscope/
+PacketStats/
 ├── __init__.py         # Package exports and version metadata
 ├── cli.py              # Command-line interface with argparse and terminal formatting
 ├── config.py           # Configuration dataclasses, validation, and JSON serialization
@@ -44,7 +44,7 @@ netscope/
 | `reporting` | Multi-format export routines. | `export_flows_csv`, `export_json`, `export_markdown_report` |
 | `visualisation` | Standalone figure generation. | `plot_protocol_distribution`, `plot_traffic_over_time`, `save_all_charts` |
 | `cli` | Terminal execution and stdout tables. | `run_analysis_pipeline`, `main` |
-| `gui` | Interactive desktop application. | `NetScopeGUI`, `launch_gui` |
+| `gui` | Interactive desktop application. | `PacketStatsGUI`, `launch_gui` |
 
 ---
 
@@ -54,11 +54,11 @@ netscope/
 sequenceDiagram
     autonumber
     actor User as User (CLI / GUI)
-    participant Parser as netscope.parser
-    participant FlowEngine as netscope.flows
-    participant StatsEngine as netscope.statistics
-    participant DetectEngine as netscope.detectors
-    participant Reporting as netscope.reporting / visualisation
+    participant Parser as packetstats.parser
+    participant FlowEngine as packetstats.flows
+    participant StatsEngine as packetstats.statistics
+    participant DetectEngine as packetstats.detectors
+    participant Reporting as packetstats.reporting / visualisation
 
     alt Offline file
         User->>Parser: stream_packets(file_path)

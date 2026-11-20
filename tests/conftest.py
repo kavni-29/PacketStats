@@ -1,4 +1,4 @@
-"""Pytest configuration and synthetic fixtures for NetScope testing."""
+"""Pytest configuration and synthetic fixtures for PacketStats testing."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import Ether
 from scapy.utils import wrpcap
 
-from netscope.config import DetectionConfig
-from netscope.models import PacketRecord
+from packetstats.config import DetectionConfig
+from packetstats.models import PacketRecord
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-"""NetScope Desktop Graphical User Interface (GUI).
+"""PacketStats Desktop Graphical User Interface (GUI).
 
 Professional Tkinter / ttk desktop application featuring multi-tab navigation,
 asynchronous worker threading for non-blocking analysis, sortable treeviews,
@@ -20,10 +20,10 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from netscope.cli import run_analysis_pipeline
-from netscope.config import DetectionConfig
-from netscope.models import AlertRecord, AnalysisSummary, FlowRecord
-from netscope.reporting import (
+from packetstats.cli import run_analysis_pipeline
+from packetstats.config import DetectionConfig
+from packetstats.models import AlertRecord, AnalysisSummary, FlowRecord
+from packetstats.reporting import (
     export_alerts_csv,
     export_endpoints_csv,
     export_flows_csv,
@@ -31,23 +31,23 @@ from netscope.reporting import (
     export_markdown_report,
     export_pdf_report,
 )
-from netscope.statistics import EndpointMetric, StatisticsReport
-from netscope.visualisation import (
+from packetstats.statistics import EndpointMetric, StatisticsReport
+from packetstats.visualisation import (
     plot_alerts_summary,
     plot_packet_size_distribution,
     plot_protocol_distribution,
     plot_top_endpoints,
     plot_traffic_over_time,
 )
-from netscope.live import LiveAnalyzer, LiveCaptureSession, capture_backend_status, discover_interfaces
+from packetstats.live import LiveAnalyzer, LiveCaptureSession, capture_backend_status, discover_interfaces
 
 
-class NetScopeGUI(tk.Tk):
-    """Main NetScope desktop application window."""
+class PacketStatsGUI(tk.Tk):
+    """Main PacketStats desktop application window."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.title("NetScope — Network Traffic Analyzer")
+        self.title("PacketStats — Network Traffic Analyzer")
         self.geometry("1150x760")
         self.minsize(950, 620)
 
@@ -142,7 +142,7 @@ class NetScopeGUI(tk.Tk):
 
         lbl_title = tk.Label(
             header,
-            text="NetScope — Network Traffic Analyzer",
+            text="PacketStats — Network Traffic Analyzer",
             font=("Segoe UI", 14, "bold"),
             fg="#ffffff",
             bg=self.c_primary,
@@ -474,7 +474,7 @@ class NetScopeGUI(tk.Tk):
         self.live_stop_button.grid(row=3, column=1, sticky="w", padx=(115, 6), pady=8)
         self.live_export_button = ttk.Button(frame, text="Export Session", command=self._export_live_session, state="disabled")
         self.live_export_button.grid(row=3, column=1, sticky="w", padx=(175, 6), pady=8)
-        ttk.Label(frame, text="NetScope listens on this interface; use a networked app to generate ordinary traffic. It does not create traffic.",
+        ttk.Label(frame, text="PacketStats listens on this interface; use a networked app to generate ordinary traffic. It does not create traffic.",
                   foreground="#52616b", wraplength=760).grid(row=4, column=0, columnspan=3, sticky="w", pady=(3, 0))
         frame.columnconfigure(1, weight=1)
         backend = ttk.LabelFrame(self.tab_live, text=" Capture Dependency ", padding=8)
@@ -516,7 +516,7 @@ class NetScopeGUI(tk.Tk):
         """Open Npcap's official download page; installation remains user-driven."""
         try:
             webbrowser.open("https://npcap.com/", new=2)
-            self.live_status_label.config(text="Npcap download page opened. Run its installer and approve the Windows driver prompt, then restart NetScope.")
+            self.live_status_label.config(text="Npcap download page opened. Run its installer and approve the Windows driver prompt, then restart packetstats.")
         except Exception as exc:
             messagebox.showerror("Could Not Open Download Page", f"Open the official Npcap download page manually:\nhttps://npcap.com/\n\n{exc}")
 
@@ -593,8 +593,8 @@ class NetScopeGUI(tk.Tk):
         if not self.live_analyzer or not self.live_analyzer.packet_count:
             messagebox.showwarning("Nothing to Export", "No packets were processed in this live session.")
             return
-        from netscope.reporting import export_json, export_markdown_report
-        from netscope.statistics import calculate_statistics
+        from packetstats.reporting import export_json, export_markdown_report
+        from packetstats.statistics import calculate_statistics
         out_dir = filedialog.askdirectory(title="Choose live-session report folder")
         if not out_dir:
             return
@@ -624,7 +624,7 @@ class NetScopeGUI(tk.Tk):
         export_json(summary, stats, flows, alerts, self.config, Path(out_dir) / "report.json")
         export_markdown_report(summary, stats, flows, alerts, self.config, Path(out_dir) / "report.md")
         self._queue_pdf_export(summary, stats, flows, alerts, self.config, Path(out_dir) / "report.pdf", mode="live", interface=self.live_session.interface if self.live_session else None)
-        messagebox.showinfo("Session Exported", f"CSV, JSON, and Markdown reports saved to:\n{out_dir}\n\nThe PDF is generating in the background; NetScope will confirm when it finishes.")
+        messagebox.showinfo("Session Exported", f"CSV, JSON, and Markdown reports saved to:\n{out_dir}\n\nThe PDF is generating in the background; PacketStats will confirm when it finishes.")
 
     def _live_stop_worker(self) -> None:
         try:
@@ -662,7 +662,7 @@ class NetScopeGUI(tk.Tk):
             messagebox.showwarning("Export Warning", "Analyse a capture before exporting a PDF report.")
             return
         destination = filedialog.asksaveasfilename(
-            title="Save NetScope PDF report", defaultextension=".pdf",
+            title="Save PacketStats PDF report", defaultextension=".pdf",
             initialfile="report.pdf", filetypes=[("PDF report", "*.pdf")],
         )
         if destination:
@@ -952,8 +952,8 @@ class NetScopeGUI(tk.Tk):
 
 
 def launch_gui() -> None:
-    """Launch NetScope desktop GUI application."""
-    app = NetScopeGUI()
+    """Launch PacketStats desktop GUI application."""
+    app = PacketStatsGUI()
     app.mainloop()
 
 

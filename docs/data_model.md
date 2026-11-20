@@ -1,8 +1,8 @@
-# NetScope Data Model & Canonical Flow Specification
+# PacketStats Data Model & Canonical Flow Specification
 
 ## 1. Data Schema Hierarchy
 
-NetScope defines lightweight, strongly typed `@dataclass` structures located in `netscope.models`:
+PacketStats defines lightweight, strongly typed `@dataclass` structures located in `packetstats.models`:
 
 ```mermaid
 classDiagram
@@ -115,7 +115,7 @@ Captures generated with snapshot limits (e.g. `tcpdump -s 96`) truncate packet p
 - **Captured Length (`length`)**: The actual number of bytes written to the capture file.
 - **Wire Length (`wire_length`)**: The original number of bytes the frame occupied on the physical network medium prior to truncation.
 
-NetScope adheres to the following convention:
+PacketStats adheres to the following convention:
 - Prefers `pkt.wirelen` if exposed by the capture format header.
 - Falls back to `len(pkt)` if original wire length is absent.
 - Documented in all summary cards and reports as *Observed Wire Bytes*.

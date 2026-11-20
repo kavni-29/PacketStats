@@ -1,9 +1,9 @@
-"""Unit tests for NetScope statistical calculations module."""
+"""Unit tests for PacketStats statistical calculations module."""
 
 import pytest
 
-from netscope.models import PacketRecord
-from netscope.statistics import (
+from packetstats.models import PacketRecord
+from packetstats.statistics import (
     calculate_statistics,
     compute_endpoint_metrics,
     compute_packet_size_statistics,

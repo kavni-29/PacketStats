@@ -1,13 +1,13 @@
-"""Unit tests for NetScope reporting and export functions."""
+"""Unit tests for PacketStats reporting and export functions."""
 
 import csv
 import json
 from pathlib import Path
 
-from netscope.config import DetectionConfig
-from netscope.flows import aggregate_flows
-from netscope.models import AlertRecord, AnalysisSummary, PacketRecord
-from netscope.reporting import (
+from packetstats.config import DetectionConfig
+from packetstats.flows import aggregate_flows
+from packetstats.models import AlertRecord, AnalysisSummary, PacketRecord
+from packetstats.reporting import (
     export_alerts_csv,
     export_endpoints_csv,
     export_flows_csv,
@@ -16,7 +16,7 @@ from netscope.reporting import (
     export_packets_csv,
     export_pdf_report,
 )
-from netscope.statistics import calculate_statistics
+from packetstats.statistics import calculate_statistics
 
 
 def test_export_flows_csv(tmp_path: Path):
@@ -128,7 +128,7 @@ def test_export_markdown_report_content(tmp_path: Path):
     assert md_path.is_file()
 
     content = md_path.read_text(encoding="utf-8")
-    assert "# NetScope — Network Traffic Analysis Report" in content
+    assert "# PacketStats — Network Traffic Analysis Report" in content
     assert "Executive Summary" in content
     assert "Protocol Distribution" in content
     assert "Defensive Security Scope" in content
@@ -172,7 +172,7 @@ def test_export_pdf_report_paginates_long_flow_table(tmp_path: Path):
 
 
 def test_export_pdf_report_wraps_output_errors(tmp_path: Path):
-    from netscope.exceptions import ExportError
+    from packetstats.exceptions import ExportError
     import pytest
 
     stats = calculate_statistics([])

@@ -13,12 +13,12 @@ from collections import deque
 from pathlib import Path
 from typing import Callable, Optional
 
-from netscope.config import DetectionConfig
-from netscope.detectors import DetectionEngine
-from netscope.flows import FlowAggregator
-from netscope.models import PacketRecord
-from netscope.parser import _dissect_scapy_packet
-from netscope.statistics import calculate_statistics
+from packetstats.config import DetectionConfig
+from packetstats.detectors import DetectionEngine
+from packetstats.flows import FlowAggregator
+from packetstats.models import PacketRecord
+from packetstats.parser import _dissect_scapy_packet
+from packetstats.statistics import calculate_statistics
 
 
 def discover_interfaces() -> list[tuple[str, str]]:
@@ -56,7 +56,7 @@ def capture_backend_status() -> tuple[bool, str]:
     try:
         from scapy.all import conf
         if sys.platform.startswith("win") and not conf.use_pcap:
-            return False, "Npcap is not available to Scapy. If you just installed it, restart NetScope; otherwise use the download button."
+            return False, "Npcap is not available to Scapy. If you just installed it, restart PacketStats; otherwise use the download button."
         l2_listener = getattr(conf, "L2listen", None)
         if l2_listener is None or "_NotAvailableSocket" in repr(l2_listener):
             dependency = "Npcap" if sys.platform.startswith("win") else "a packet-capture backend"

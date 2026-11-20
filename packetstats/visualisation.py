@@ -1,4 +1,4 @@
-"""NetScope data visualisation engine.
+"""PacketStats data visualisation engine.
 
 Generates Matplotlib charts for protocol distribution, traffic time series,
 top communicating endpoints, packet size distributions, and anomaly alert summaries.
@@ -15,8 +15,8 @@ matplotlib.use("Agg")  # Non-interactive backend safe for headless CLI and Tk em
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
-from netscope.models import AlertRecord
-from netscope.statistics import StatisticsReport
+from packetstats.models import AlertRecord
+from packetstats.statistics import StatisticsReport
 
 # Styling theme colors
 PALETTE = {

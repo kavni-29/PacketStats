@@ -1,4 +1,4 @@
-"""NetScope statistical analysis engine.
+"""PacketStats statistical analysis engine.
 
 Computes comprehensive protocol distributions, endpoint rankings, packet length
 descriptive statistics (mean, median, percentiles), and time-bucketed traffic volume series.
@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from netscope.models import FlowRecord, PacketRecord
+from packetstats.models import FlowRecord, PacketRecord
 
 
 @dataclass

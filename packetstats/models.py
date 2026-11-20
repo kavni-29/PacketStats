@@ -1,4 +1,4 @@
-"""NetScope data models.
+"""PacketStats data models.
 
 Defines typed dataclasses and structures for packets, network flows,
 anomaly detection alerts, and capture analysis summaries.

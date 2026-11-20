@@ -1,4 +1,4 @@
-"""NetScope packet parsing engine.
+"""PacketStats packet parsing engine.
 
 Reads saved PCAP and PCAPNG capture files using Scapy's streaming PcapReader.
 Extracts protocol metadata, normalizes fields, and handles malformed or
@@ -18,12 +18,12 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import ARP, Ether
 from scapy.utils import PcapReader, Scapy_Exception
 
-from netscope.exceptions import (
+from packetstats.exceptions import (
     InvalidCaptureError,
     ParsingError,
     UnsupportedCaptureFormatError,
 )
-from netscope.models import PacketRecord
+from packetstats.models import PacketRecord
 
 logger = logging.getLogger(__name__)
 

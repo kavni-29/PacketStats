@@ -1,4 +1,4 @@
-"""Integration tests verifying full end-to-end NetScope analysis pipeline."""
+"""Integration tests verifying full end-to-end PacketStats analysis pipeline."""
 
 from pathlib import Path
 from scapy.layers.dns import DNS, DNSQR
@@ -6,9 +6,9 @@ from scapy.layers.inet import ICMP, IP, TCP, UDP
 from scapy.layers.l2 import Ether
 from scapy.utils import wrpcap
 
-from netscope.cli import run_analysis_pipeline
-from netscope.config import DetectionConfig
-from netscope.reporting import (
+from packetstats.cli import run_analysis_pipeline
+from packetstats.config import DetectionConfig
+from packetstats.reporting import (
     export_alerts_csv,
     export_flows_csv,
     export_json,

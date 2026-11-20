@@ -1,4 +1,4 @@
-"""Unit tests for NetScope packet parser module."""
+"""Unit tests for PacketStats packet parser module."""
 
 from pathlib import Path
 import pytest
@@ -8,8 +8,8 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import Ether
 from scapy.utils import wrpcap
 
-from netscope.exceptions import InvalidCaptureError
-from netscope.parser import parse_capture, stream_packets, validate_capture_file
+from packetstats.exceptions import InvalidCaptureError
+from packetstats.parser import parse_capture, stream_packets, validate_capture_file
 
 
 def test_validate_nonexistent_file(tmp_path: Path):

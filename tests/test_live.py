@@ -3,8 +3,8 @@ from scapy.layers.inet import IP, TCP
 from scapy.layers.l2 import Ether
 import threading
 
-from netscope.live import LiveAnalyzer, LiveCaptureSession, capture_backend_status
-from netscope.parser import stream_packets
+from packetstats.live import LiveAnalyzer, LiveCaptureSession, capture_backend_status
+from packetstats.parser import stream_packets
 
 
 def test_live_analyzer_aggregates_both_directions_and_bounds_history():
@@ -82,8 +82,8 @@ def test_capture_start_failure_is_actionable(monkeypatch):
 
 
 def test_flow_aggregator_expires_inactive_flows():
-    from netscope.flows import FlowAggregator
-    from netscope.models import PacketRecord
+    from packetstats.flows import FlowAggregator
+    from packetstats.models import PacketRecord
 
     flows = FlowAggregator()
     flows.add_packet(PacketRecord.create(1, 10.0, "192.0.2.1", "192.0.2.2", "UDP", 10, 20, 32))
@@ -94,7 +94,7 @@ def test_flow_aggregator_expires_inactive_flows():
 
 def test_backend_check_reports_missing_npcap(monkeypatch):
     from scapy.all import conf
-    import netscope.live as live
+    import packetstats.live as live
 
     monkeypatch.setattr(live.sys, "platform", "win32")
     monkeypatch.setattr(conf, "use_pcap", False)

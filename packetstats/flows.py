@@ -1,4 +1,4 @@
-"""NetScope bidirectional network flow aggregation engine.
+"""PacketStats bidirectional network flow aggregation engine.
 
 Aggregates individual packets into bidirectional network flows using
 deterministic canonical flow keys. Calculates directional packet and byte
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional
 
-from netscope.models import FlowKey, FlowRecord, PacketRecord
+from packetstats.models import FlowKey, FlowRecord, PacketRecord
 
 
 class FlowAggregator:

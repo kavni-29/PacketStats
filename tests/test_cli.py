@@ -1,7 +1,7 @@
-"""Unit tests for NetScope command-line interface."""
+"""Unit tests for PacketStats command-line interface."""
 
 from pathlib import Path
-from netscope.cli import main
+from packetstats.cli import main
 
 
 def test_cli_missing_input_argument(capsys):

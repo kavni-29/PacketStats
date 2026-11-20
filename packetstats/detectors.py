@@ -1,4 +1,4 @@
-"""NetScope explainable anomaly detection engine.
+"""PacketStats explainable anomaly detection engine.
 
 Implements rule-based, deterministic, and fully configurable anomaly detection
 rules for network traffic analysis. Each rule generates structured alerts containing
@@ -13,9 +13,9 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
-from netscope.config import DetectionConfig
-from netscope.models import AlertRecord, FlowRecord, PacketRecord
-from netscope.statistics import StatisticsReport
+from packetstats.config import DetectionConfig
+from packetstats.models import AlertRecord, FlowRecord, PacketRecord
+from packetstats.statistics import StatisticsReport
 
 
 class BaseDetector(ABC):

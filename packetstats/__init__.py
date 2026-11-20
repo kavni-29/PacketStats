@@ -1,16 +1,16 @@
-"""NetScope — Network Traffic Analyzer & Explainable Anomaly Detection System."""
+"""PacketStats — Network Traffic Analyzer & Explainable Anomaly Detection System."""
 
-from netscope.config import DetectionConfig
-from netscope.exceptions import (
+from packetstats.config import DetectionConfig
+from packetstats.exceptions import (
     AnalysisError,
     ConfigurationError,
     ExportError,
     InvalidCaptureError,
-    NetScopeError,
+    PacketStatsError,
     ParsingError,
     UnsupportedCaptureFormatError,
 )
-from netscope.models import (
+from packetstats.models import (
     AlertRecord,
     AnalysisSummary,
     FlowKey,
@@ -21,7 +21,7 @@ from netscope.models import (
 __version__ = "1.0.0"
 __all__ = [
     "DetectionConfig",
-    "NetScopeError",
+    "PacketStatsError",
     "InvalidCaptureError",
     "UnsupportedCaptureFormatError",
     "ParsingError",

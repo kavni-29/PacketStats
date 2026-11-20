@@ -1,4 +1,4 @@
-"""NetScope Command-Line Interface (CLI).
+"""PacketStats Command-Line Interface (CLI).
 
 A feature-rich, standalone terminal utility for offline packet inspection,
 bidirectional flow aggregation, statistical profiling, and explainable
@@ -14,13 +14,13 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-from netscope.config import DetectionConfig
-from netscope.detectors import DetectionEngine
-from netscope.exceptions import ConfigurationError, InvalidCaptureError, NetScopeError
-from netscope.flows import aggregate_flows
-from netscope.models import AlertRecord, AnalysisSummary, FlowRecord, PacketRecord
-from netscope.parser import parse_capture, stream_packets
-from netscope.reporting import (
+from packetstats.config import DetectionConfig
+from packetstats.detectors import DetectionEngine
+from packetstats.exceptions import ConfigurationError, InvalidCaptureError, PacketStatsError
+from packetstats.flows import aggregate_flows
+from packetstats.models import AlertRecord, AnalysisSummary, FlowRecord, PacketRecord
+from packetstats.parser import parse_capture, stream_packets
+from packetstats.reporting import (
     export_alerts_csv,
     export_endpoints_csv,
     export_flows_csv,
@@ -29,8 +29,8 @@ from netscope.reporting import (
     export_pdf_report,
     export_packets_csv,
 )
-from netscope.statistics import StatisticsReport, calculate_statistics
-from netscope.visualisation import save_all_charts
+from packetstats.statistics import StatisticsReport, calculate_statistics
+from packetstats.visualisation import save_all_charts
 
 __version__ = "1.0.0"
 
@@ -76,7 +76,7 @@ def setup_logging(verbose: bool) -> None:
 def print_banner() -> None:
     """Print clean ASCII header banner."""
     print(cyan("=" * 76))
-    print(bold("   NetScope — Network Traffic Analyzer & Explainable Anomaly Detection   "))
+    print(bold("   PacketStats — Network Traffic Analyzer & Explainable Anomaly Detection   "))
     print(cyan("=" * 76))
 
 
@@ -237,8 +237,8 @@ def run_analysis_pipeline(
 def build_arg_parser() -> argparse.ArgumentParser:
     """Build command-line argument parser supporting subcommands and direct flags."""
     parser = argparse.ArgumentParser(
-        prog="netscope",
-        description="NetScope — Network Traffic Analyzer & Explainable Anomaly Detection System",
+        prog="PacketStats",
+        description="PacketStats — Network Traffic Analyzer & Explainable Anomaly Detection System",
     )
 
     # Subcommands
@@ -276,7 +276,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     sub_live.add_argument("--duration", type=float, default=0, help="Stop after this many seconds (0 means until Ctrl+C).")
 
     # Subcommand: version
-    subparsers.add_parser("version", help="Print NetScope version information.")
+    subparsers.add_parser("version", help="Print PacketStats version information.")
 
     # Root flags (direct / backward compatible execution)
     parser.add_argument("input_pos", nargs="?", help="Path to input PCAP or PCAPNG capture file (positional).")
@@ -308,7 +308,7 @@ def main(args: Optional[list[str]] = None) -> int:
 
     if parsed_args.command == "interfaces":
         try:
-            from netscope.live import discover_interfaces
+            from packetstats.live import discover_interfaces
             interfaces = discover_interfaces()
             if not interfaces:
                 print("No capture interfaces found.")
@@ -321,7 +321,7 @@ def main(args: Optional[list[str]] = None) -> int:
             return 2
 
     if parsed_args.command == "live":
-        from netscope.live import LiveAnalyzer, LiveCaptureSession, discover_interfaces
+        from packetstats.live import LiveAnalyzer, LiveCaptureSession, discover_interfaces
         try:
             known = {name for name, _ in discover_interfaces()}
             if parsed_args.interface not in known:
@@ -357,13 +357,13 @@ def main(args: Optional[list[str]] = None) -> int:
 
     # Handle 'version' subcommand
     if parsed_args.command == "version":
-        print(f"NetScope version {__version__} (Python {sys.version.split()[0]} on {sys.platform})")
+        print(f"PacketStats version {__version__} (Python {sys.version.split()[0]} on {sys.platform})")
         return 0
 
     # Handle 'gui' subcommand or --gui flag
     if parsed_args.command == "gui" or parsed_args.gui:
         try:
-            from netscope.gui import launch_gui
+            from packetstats.gui import launch_gui
             launch_gui()
             return 0
         except Exception as e:

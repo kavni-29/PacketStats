@@ -1,7 +1,7 @@
-"""Unit tests for NetScope bidirectional flow aggregation engine."""
+"""Unit tests for PacketStats bidirectional flow aggregation engine."""
 
-from netscope.flows import FlowAggregator, aggregate_flows
-from netscope.models import FlowKey, PacketRecord
+from packetstats.flows import FlowAggregator, aggregate_flows
+from packetstats.models import FlowKey, PacketRecord
 
 
 def test_bidirectional_flow_key_ordering():

@@ -1,1 +1,1 @@
-"""NetScope test suite."""
+"""PacketStats test suite."""

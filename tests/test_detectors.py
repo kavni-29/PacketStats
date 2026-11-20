@@ -1,9 +1,9 @@
-"""Unit tests for NetScope explainable anomaly detection rules and boundary cases."""
+"""Unit tests for PacketStats explainable anomaly detection rules and boundary cases."""
 
 import pytest
 
-from netscope.config import DetectionConfig
-from netscope.detectors import (
+from packetstats.config import DetectionConfig
+from packetstats.detectors import (
     HighPacketRateDetector,
     PortDiversityDetector,
     RepeatedCommunicationDetector,
@@ -11,8 +11,8 @@ from netscope.detectors import (
     TrafficConcentrationDetector,
     VolumeDeviationDetector,
 )
-from netscope.models import PacketRecord
-from netscope.statistics import calculate_statistics
+from packetstats.models import PacketRecord
+from packetstats.statistics import calculate_statistics
 
 
 def test_high_packet_rate_boundaries():

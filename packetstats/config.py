@@ -1,4 +1,4 @@
-"""NetScope configuration management.
+"""PacketStats configuration management.
 
 Provides structured configuration for detection thresholds, timing windows,
 statistical baselines, safety limits, and export options with validation.
@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from netscope.exceptions import ConfigurationError
+from packetstats.exceptions import ConfigurationError
 
 
 @dataclass
