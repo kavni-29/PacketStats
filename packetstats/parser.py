@@ -14,6 +14,7 @@ from typing import Generator, List, Optional, Tuple
 
 from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import ICMP, IP, TCP, UDP
+from scapy.layers.igmp import IGMP
 from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import ARP, Ether
 from scapy.utils import PcapReader, Scapy_Exception
@@ -144,6 +145,7 @@ def _dissect_scapy_packet(pkt: object, index: int) -> PacketRecord:
     tcp_flags: Optional[str] = None
     parsing_status = "OK"
     error_reason: Optional[str] = None
+    details = {}
 
     try:
         # Layer 3 / Network Layer extraction
@@ -153,18 +155,25 @@ def _dissect_scapy_packet(pkt: object, index: int) -> PacketRecord:
                 src_ip = str(ip_layer.src)
                 dst_ip = str(ip_layer.dst)
                 protocol = "IP"
+                details.update({"network": "IPv4", "ttl": int(ip_layer.ttl), "ip_id": int(ip_layer.id), "header_length": int(ip_layer.ihl or 0) * 4, "fragment_offset": int(ip_layer.frag), "more_fragments": bool(int(ip_layer.flags) & 1), "ip_protocol": int(ip_layer.proto)})
             elif pkt.haslayer(IPv6):
                 ipv6_layer = pkt[IPv6]
                 src_ip = str(ipv6_layer.src)
                 dst_ip = str(ipv6_layer.dst)
                 protocol = "IPv6"
+                details.update({"network": "IPv6", "hop_limit": int(ipv6_layer.hlim), "header_length": 40, "next_header": int(ipv6_layer.nh)})
             elif pkt.haslayer(ARP):
                 arp_layer = pkt[ARP]
                 src_ip = str(arp_layer.psrc)
                 dst_ip = str(arp_layer.pdst)
                 protocol = "ARP"
+                details.update({"arp_operation": int(arp_layer.op), "arp_hardware_source": str(arp_layer.hwsrc), "arp_hardware_destination": str(arp_layer.hwdst)})
             elif pkt.haslayer(Ether):
                 protocol = "ETHERNET"
+
+            if pkt.haslayer(Ether):
+                ether_layer = pkt[Ether]
+                details.update({"ethernet_source": str(ether_layer.src), "ethernet_destination": str(ether_layer.dst), "ether_type": int(ether_layer.type)})
 
             # Layer 4 / Transport Layer extraction
             if pkt.haslayer(TCP):
@@ -174,14 +183,22 @@ def _dissect_scapy_packet(pkt: object, index: int) -> PacketRecord:
                 dst_port = int(tcp_layer.dport)
                 # Convert Scapy flags to string representation (e.g. 'S', 'SA', 'FA', 'R')
                 tcp_flags = str(tcp_layer.flags)
+                details.update({"tcp_sequence": int(tcp_layer.seq), "tcp_acknowledgment": int(tcp_layer.ack), "tcp_window": int(tcp_layer.window), "tcp_flags": tcp_flags, "transport": "TCP"})
             elif pkt.haslayer(UDP):
                 udp_layer = pkt[UDP]
                 protocol = "UDP"
                 src_port = int(udp_layer.sport)
                 dst_port = int(udp_layer.dport)
+                details.update({"udp_length": int(udp_layer.len or 0), "transport": "UDP"})
             elif pkt.haslayer(ICMP):
                 protocol = "ICMP"
+                layer = pkt[ICMP]
+                details.update({"icmp_type": int(layer.type), "icmp_code": int(layer.code)})
                 # Ports intentionally remain None for ICMP
+            elif pkt.haslayer(IGMP):
+                protocol = "IGMP"
+                layer = pkt[IGMP]
+                details.update({"igmp_type": int(layer.type), "igmp_group": str(getattr(layer, "gaddr", ""))})
             elif any(name.startswith("ICMPv6") for name in pkt.layers()):
                 protocol = "ICMPv6"
                 # Ports intentionally remain None for ICMPv6
@@ -208,6 +225,7 @@ def _dissect_scapy_packet(pkt: object, index: int) -> PacketRecord:
         dns_qtype=dns_qtype,
         parsing_status=parsing_status,
         error_reason=error_reason,
+        details=details,
     )
 
 

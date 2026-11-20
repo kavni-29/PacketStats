@@ -119,3 +119,17 @@ PacketStats adheres to the following convention:
 - Prefers `pkt.wirelen` if exposed by the capture format header.
 - Falls back to `len(pkt)` if original wire length is absent.
 - Documented in all summary cards and reports as *Observed Wire Bytes*.
+# Packet accounting and endpoint shares
+
+Offline ingestion follows these counters:
+
+- `packets_captured` / parser `total_read`: records returned by Scapy's reader.
+- `packets_processed`: fully dissected records (`OK`).
+- `packets_partial`: records where dissection recovered only some metadata.
+- `packets_failed`: records that could not be dissected; these are retained as `CORRUPTED` diagnostics.
+- `packets_classified`: records assigned exactly one primary protocol label, including `CORRUPTED` records. The protocol table therefore sums to captured records.
+- `packets_in_flows`: records with both source and destination IP addresses that were aggregated. The difference is reported as packets without flow endpoints.
+
+Protocol and byte statistics include all yielded records, including partial/error records where the capture reader yielded a frame. The packet's captured/wire length is counted once. A flow can only include records with both IP endpoints. Flow byte totals are therefore a subset of capture bytes for captures containing non-IP frames or failed records.
+
+Endpoint `total_packets` means participation: a packet increments both its source and destination endpoints when both exist. Summed endpoint participation can reach 200% of packet count. Concentration alerts instead use source-originated share (`packets_sent / captured packet count`), so the total source share cannot exceed 100%.

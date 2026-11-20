@@ -1,24 +1,67 @@
-# PacketStats Testing
+# Testing and reproducibility
 
-The automated suite uses synthetic Scapy packets, temporary capture files, and mocked capture backends. It does not open physical interfaces or require administrator/root privileges.
+## Environment
 
-Run it from the repository root:
+Use Python 3.10+ and install the project with its development dependency:
 
-```powershell
-python -m pytest -v
+```bash
+python -m venv .venv
+# Windows PowerShell: .\.venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 ```
 
-## Coverage
+Run the complete test suite from the repository root:
 
-- `test_parser.py`: PCAP/PCAPNG validation and packet field normalization.
-- `test_flows.py`: canonical keys, reverse direction accounting, and flow metrics.
-- `test_statistics.py`: protocol, endpoint, packet-size, and time-bucket metrics.
-- `test_detectors.py`: all six offline detection rules and threshold cases.
-- `test_reporting.py`: CSV, JSON, Markdown, and PDF output, including empty reports, content, pagination, and export errors.
-- `test_cli.py`: CLI arguments, errors, and exports.
-- `test_integration.py`: offline analysis pipeline integration.
-- `test_live.py`: bounded live packet history, bidirectional flow aggregation, inactivity expiration, mocked capture lifecycle, filters, and PCAPNG recording that is reopened through the offline parser.
+```bash
+python -m pytest
+```
 
-Live capture on a real network interface is intentionally not part of the unit suite. To check a local setup manually, list interfaces with `python -m packetstats.cli interfaces`, select an interface you are authorised to monitor, start a short capture with `python -m packetstats.cli live --interface <id> --duration 10 --record <file.pcapng>`, then analyse the resulting file with the offline CLI.
+For verbose output, use `python -m pytest -v`. On Windows environments where pytest's default virtualized temporary path cannot be written by subprocesses, use a temporary directory inside the checkout:
 
-PDF tests inspect generated PDF bytes for report headings, values, page numbering, and correct error wrapping without requiring a PDF reader application. Live capture on a real network interface is not part of the standard suite.
+```powershell
+python -m pytest -q --basetemp=.pytest-run
+Remove-Item -LiteralPath .pytest-run -Recurse -Force
+```
+
+Do not commit `.pytest-run`; it is local test output.
+
+## What the suite covers
+
+- `test_parser.py`: PCAP validation, protocol metadata, and packet normalization.
+- `test_flows.py`: canonical flow keys and directional accounting.
+- `test_statistics.py`: protocol, endpoint, packet size, and time series metrics.
+- `test_detectors.py`: six implemented detector rules.
+- `test_reporting.py`: CSV, JSON, Markdown, PDF export behavior.
+- `test_cli.py`: CLI success and error paths.
+- `test_integration.py`: offline pipeline integration.
+- `test_live.py`: mocked capture lifecycle and recording behavior.
+
+The tests do not open physical network interfaces, require admin/root access, or verify Npcap/libpcap operation.
+
+## Reproduce a sample analysis
+
+The sample capture is `samples/synthetic_demo.pcap`. Recreate it deterministically with:
+
+```bash
+python samples/generate_sample_pcap.py
+```
+
+Then run:
+
+```bash
+python -m netscope.cli --input samples/synthetic_demo.pcap --output reports/repro --charts
+```
+
+Review generated local files under `reports/repro/`. These include report exports and chart images. Timing fields can vary across runs and machines.
+
+## Manual GUI and live-capture checks
+
+1. Run `python -m netscope.gui` and load the sample PCAP.
+2. Confirm summary, protocol rows, flows, endpoints, alerts, charts, and Packet Explorer rows appear.
+3. Select packets and verify the decoded header fields are consistent with the displayed packet.
+4. Export a report and confirm the selected output path contains the requested artifacts.
+5. For live capture only, install the platform backend, run `python -m netscope.cli interfaces`, select an authorized interface, capture briefly, stop, and parse the recorded PCAPNG offline.
+
+Manual live checks are platform-dependent and should be recorded separately from automated test results.

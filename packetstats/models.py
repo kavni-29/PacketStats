@@ -30,6 +30,8 @@ class PacketRecord:
     dns_qtype: Optional[str] = None
     parsing_status: str = "OK"  # "OK", "PARTIAL", "ERROR"
     error_reason: Optional[str] = None
+    # Decoded header metadata only. Raw payload bytes are never retained here.
+    details: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def create(
@@ -48,6 +50,7 @@ class PacketRecord:
         dns_qtype: Optional[str] = None,
         parsing_status: str = "OK",
         error_reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
     ) -> PacketRecord:
         """Factory method computing formatted UTC timestamp string."""
         try:
@@ -74,6 +77,7 @@ class PacketRecord:
             dns_qtype=dns_qtype,
             parsing_status=parsing_status,
             error_reason=error_reason,
+            details=details or {},
         )
 
 
@@ -201,6 +205,11 @@ class AnalysisSummary:
     capture_start_time: Optional[float] = None
     capture_end_time: Optional[float] = None
     capture_duration_seconds: float = 0.0
+    packets_captured: int = 0
+    packets_failed: int = 0
+    packets_classified: int = 0
+    packets_in_flows: int = 0
+    packets_without_flow_endpoints: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert summary to dictionary."""
@@ -219,4 +228,9 @@ class AnalysisSummary:
             "capture_start_time": self.capture_start_time,
             "capture_end_time": self.capture_end_time,
             "capture_duration_seconds": round(self.capture_duration_seconds, 4),
+            "packets_captured": self.packets_captured,
+            "packets_failed": self.packets_failed,
+            "packets_classified": self.packets_classified,
+            "packets_in_flows": self.packets_in_flows,
+            "packets_without_flow_endpoints": self.packets_without_flow_endpoints,
         }

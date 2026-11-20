@@ -1,104 +1,144 @@
-# PacketStats - Network Traffic Analyzer
+# NetScope
 
-I built PacketStats as a third-year CSE project to learn how packet captures can be turned into useful traffic summaries. It is a Python app with a desktop interface and a command-line tool. It can analyse saved PCAP/PCAPNG files and, when the required capture driver is available, monitor a live network interface.
+NetScope is a Python desktop and command-line application for offline PCAP/PCAPNG analysis and optional live packet capture. It parses packet metadata, aggregates bidirectional flows, calculates traffic statistics, evaluates six explainable heuristic rules, and exports reports.
 
-PacketStats works with packet and flow metadata. It does not decrypt traffic or prove that an alert is an attack.
+It does not decrypt encrypted traffic, inject packets, or establish that an alert is an attack. Use it only on captures and networks you are authorized to inspect.
 
-## What it does
+## Current features
 
-- Summarises protocols, endpoints, packet sizes, and bidirectional flows.
-- Flags unusual traffic patterns using six configurable rules.
-- Shows results in a Tkinter desktop app or the command line.
-- Exports CSV, JSON, Markdown, and PDF reports, with optional chart images.
-- Supports live capture through Scapy when the system's capture backend is set up.
+- PCAP and PCAPNG parsing with Scapy.
+- IPv4/IPv6, TCP/UDP, ICMP/ICMPv6, ARP and IGMP classification, with decoded header metadata where available.
+- Bidirectional flow aggregation with direction-specific packet and byte counts.
+- Protocol, endpoint, packet size, and time-bucket statistics.
+- Six configurable heuristic detectors with evidence and benign-use context.
+- Tkinter desktop app with summary, flow, endpoint, alert, chart, report, live monitoring, and paginated Packet Explorer views.
+- CLI for offline analysis, inspection, flows, alerts, live capture, and interface listing.
+- CSV, JSON, Markdown, and PDF reports, plus PNG charts.
+- Optional PCAPNG recording during live capture.
 
-The main processing path is:
+The Packet Explorer displays 500 rows per page and supports protocol filtering and text search. It shows decoded header metadata; raw payload bytes are not retained by default.
 
-```text
-PCAP file or live interface -> packet records -> flows and statistics -> alerts and reports
-```
+## Requirements
 
-## Set up
+- Python 3.10 or later.
+- Tkinter for the desktop GUI (often included with Python on Windows; Linux distributions may package it separately).
+- Live capture requires an OS packet capture backend and suitable permissions. Windows requires Npcap. Offline capture analysis does not require capture privileges.
 
-Use Python 3.10 or later. From PowerShell:
+## Reproducible setup
 
-```powershell
-git clone https://github.com/kavni-29/packetstats.git
-cd packetstats
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
+Clone the repository and create an isolated environment from the repository root.
 
-For macOS or Linux, activate the environment with `source .venv/bin/activate`.
-
-## Run it
-
-### Desktop app
+### Windows PowerShell
 
 ```powershell
-python -m packetstats.gui
+git clone https://github.com/kavni-29/netscope.git
+Set-Location netscope
+py -3.10 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 ```
 
-Choose a capture file with **Browse**, then click **Analyse Capture**. Use the tabs to review the summary, flows, endpoints, alerts, and charts. The Reports tab can save a PDF by itself or export all report formats.
-
-### Command line
-
-The repository includes a small synthetic capture to try:
+If PowerShell blocks activation, allow it for the current process and retry:
 
 ```powershell
-python -m packetstats.cli --input samples/synthetic_demo.pcap --output reports/demo
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-That command writes CSV, JSON, Markdown, and PDF reports. To export only a PDF, add `--format pdf`. To also save chart images, add `--charts`.
+### Linux and macOS
 
-Generated reports are local output and are ignored by Git. The `--output reports/demo` option keeps them together in that folder. Without `--output`, the folder is named after the capture file, such as `reports/synthetic_demo`. Delete the reports folder whenever you no longer need those results; the commands recreate it.
+```bash
+git clone https://github.com/kavni-29/netscope.git
+cd netscope
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
 
-To generate the synthetic capture again:
+Alternatively, install runtime requirements with `pip install -r requirements.txt`; install pytest separately if you plan to run tests. The editable install also exposes the `netscope` command.
 
-```powershell
+## Run the application
+
+### Desktop GUI
+
+```bash
+python -m netscope.gui
+```
+
+Choose a PCAP/PCAPNG using **Browse**, then select **Analyse Capture**. The Packet Explorer, Flows, Endpoints, Anomaly Alerts, Visualisations, Reports, and Live Monitoring views are available in the notebook tabs.
+
+### CLI quick start
+
+Analyze the included sample capture and create reports:
+
+```bash
+python -m netscope.cli --input samples/synthetic_demo.pcap --output reports/demo --charts
+```
+
+On Windows PowerShell, the same command works with backslashes in paths. The `reports/` directory is local generated output and is ignored by Git.
+
+Useful commands:
+
+```bash
+python -m netscope.cli --help
+python -m netscope.cli inspect samples/synthetic_demo.pcap --limit 20
+python -m netscope.cli flows samples/synthetic_demo.pcap --top 10
+python -m netscope.cli alerts samples/synthetic_demo.pcap
+python -m netscope.cli interfaces
+```
+
+Generate the deterministic sample capture again:
+
+```bash
 python samples/generate_sample_pcap.py
 ```
 
-### Live monitoring
+## Live capture
 
-Open the **Live Monitoring** tab, select an interface, and click **Start Capture**. PacketStats listens to traffic already visible on that interface; opening a browser or another networked app can give it packets to display. It does not generate traffic itself.
+Install [Npcap](https://npcap.com/) on Windows, or the relevant libpcap/BPF backend on Linux/macOS. Restart the application after installing a driver. List interfaces with `python -m netscope.cli interfaces`, then select one in the GUI or pass its identifier to the CLI:
 
-Live capture needs a system capture backend. On Windows, install [Npcap](https://npcap.com/) and restart PacketStats. Linux and macOS also need their packet-capture support and permission to access the chosen interface. You can list interfaces from a terminal with:
-
-```powershell
-python -m packetstats.cli interfaces
+```bash
+python -m netscope.cli live --interface "<interface-id>" --duration 10 --record captures/session.pcapng
+python -m netscope.cli --input captures/session.pcapng --output reports/session
 ```
 
-Only monitor networks you own or have permission to inspect. The automated tests use a mocked capture backend, so real interface capture still needs to be checked on the target computer.
+Live capture observes traffic available at the selected capture point; it does not generate traffic. Raw capture recording is opt-in. Capture files may contain sensitive metadata and should be handled accordingly. Automated tests mock capture and do not verify a physical interface or driver.
 
 ## Tests
 
-```powershell
-python -m pytest -v
+Run from the repository root:
+
+```bash
+python -m pytest
 ```
 
-The tests cover packet parsing, flow aggregation, statistics, detection rules, reports, CLI behavior, and the mocked live-capture lifecycle. In this checkout, **43 tests passed**.
+The suite covers parsing, flow aggregation, statistics, detectors, report exports, CLI behavior, offline integration, and mocked live-capture behavior. It does not require Npcap or root/administrator access. A manual live-capture check is still needed on the target machine.
 
-## Project files
+## Packet accounting
+
+The summary reports captured records, fully parsed records, partial parses, parse failures, classified records, records included in flows, and records without flow endpoints separately. Each yielded record receives one primary protocol label; failed records use `CORRUPTED`. Protocol counts therefore sum to yielded capture records. Flow aggregation requires both IP endpoints, so flow packet totals can be lower.
+
+Endpoint packet totals count participation at both ends of a packet and can sum to twice the capture count. The endpoint concentration detector instead reports source-originated share, with captured packet count as its denominator; this share cannot exceed 100%. See [data model and accounting](docs/data_model.md).
+
+## Known limitations
+
+NetScope is a student network analysis project, not a full protocol forensic suite. It does not currently provide dedicated TCP handshake or DNS transaction dashboards, capture-to-capture comparison, topology graphing, comprehensive protocol decoding, or all the advanced detectors described in possible future plans. GUI payload hex inspection, light/dark theme switching, and persistent theme preferences are also not implemented. Detection results are heuristics and can produce false positives. Encrypted application payloads are not decoded.
+
+## Repository map
 
 ```text
-PacketStats/       Main application code (GUI, CLI, analysis, capture, reports)
-tests/          Automated tests
-samples/        Synthetic capture and its generator
-docs/           Design and usage notes
+netscope/       Application package (parser, flows, statistics, detectors, GUI, CLI)
+tests/          Automated unit and integration tests
+samples/        Synthetic PCAP generator and sample capture
+docs/           Architecture, deployment, data model, detection, and testing notes
 ```
 
-## A few limitations
-
-PacketStats analyses packet metadata, not encrypted application contents. Its rules are simple heuristics, so ordinary activity can trigger alerts. Live capture also depends on the computer's driver and permissions. Screenshots aren't included yet.
-
-This project has given me practice with packet parsing, flow aggregation, statistics, Tkinter, and testing a shared analysis pipeline from both saved captures and live input.
-
-## More documentation
+## Documentation
 
 - [Architecture](docs/architecture.md)
-- [Data model](docs/data_model.md)
+- [Data model and accounting](docs/data_model.md)
 - [Deployment and setup](docs/deployment.md)
 - [Detection rules](docs/detection_rules.md)
 - [Testing](docs/testing.md)

@@ -1,39 +1,88 @@
-# Setup and deployment
+# Installation and operation
 
-## Run from source
+## Requirements
 
-PacketStats requires Python 3.10+ and Tkinter for its desktop window. From the repository root:
+- Python 3.10 or newer.
+- Tkinter for the GUI.
+- Windows, Linux, or macOS for offline analysis. Live capture depends on platform support and permissions.
+- Windows live capture requires Npcap. Linux/macOS require an available libpcap/BPF capture backend.
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m packetstats.gui
-```
+## Install from a Git checkout
 
-On macOS/Linux, activate the environment with `source .venv/bin/activate`. Offline analysis does not require special privileges. The CLI entry point is `python -m packetstats.cli`; use `--help` for options.
-
-## Live capture prerequisites
-
-Live capture is performed using Scapy `AsyncSniffer` against a selected interface. It depends on the operating system's packet-capture backend and access permissions:
-
-- **Windows:** Npcap. PacketStats can open the [official Npcap download page](https://npcap.com/), but does not silently install a driver. Install it through the official installer and restart PacketStats.
-- **Linux:** libpcap and permission to capture on the selected interface.
-- **macOS:** BPF/libpcap support and permission to access the selected BPF device.
-
-Check interfaces using `python -m packetstats.cli interfaces`. Start a short capture only on an interface you are authorised to monitor:
+### Windows PowerShell
 
 ```powershell
-python -m packetstats.cli live --interface "<interface-id>" --duration 10 --record captures/session.pcapng
-python -m packetstats.cli --input captures/session.pcapng --output reports/session
+git clone https://github.com/kavni-29/netscope.git
+Set-Location netscope
+py -3.10 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 ```
 
-Ordinary automated tests mock the capture backend and do not verify real hardware capture. Driver installation, operating-system policy, and interface selection require manual checks on each target system.
+If activation is blocked for the current PowerShell session:
 
-## Reports
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
 
-The CLI's default `--format all` writes CSV, JSON, Markdown, and PDF reports. To create only the PDF, use `--format pdf`. Add `--charts` to save standalone PNG charts alongside the report. The GUI's **Reports & Exports** tab offers **Export PDF Report** and **Export All Formats**. GUI PDF writing runs in a worker thread so the window remains responsive.
+### Linux/macOS
+
+```bash
+git clone https://github.com/kavni-29/netscope.git
+cd netscope
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
+
+## Offline operation
+
+Launch the GUI:
+
+```bash
+python -m netscope.gui
+```
+
+Analyze the checked-in sample capture using the CLI:
+
+```bash
+python -m netscope.cli --input samples/synthetic_demo.pcap --output reports/demo --charts
+```
+
+Use `python -m netscope.cli --help` to see CLI commands. Offline analysis does not need admin/root privileges or an active capture interface. Reports are written locally and are ignored by Git.
+
+Regenerate the synthetic sample if needed:
+
+```bash
+python samples/generate_sample_pcap.py
+```
+
+## Live capture
+
+Install the OS capture driver/backend separately. For Windows, use the [official Npcap site](https://npcap.com/). Restart the terminal or application after installation. Interface discovery:
+
+```bash
+python -m netscope.cli interfaces
+```
+
+CLI capture and recording example:
+
+```bash
+python -m netscope.cli live --interface "<interface-id>" --duration 10 --record captures/session.pcapng
+python -m netscope.cli --input captures/session.pcapng --output reports/session
+```
+
+The GUI provides interface selection and start/stop controls in **Live Monitoring**. Select only interfaces and networks you are authorized to monitor. Packet recording is optional and may retain sensitive network metadata. NetScope does not inject or transmit traffic.
+
+Automated tests use a mocked backend; they cannot confirm Npcap installation, physical adapter operation, or capture permissions. Validate those manually on each target system.
+
+## Configuration and output
+
+Detection thresholds use `DetectionConfig` in `netscope/config.py`; JSON load/save helpers are provided by that class. CLI configuration options are described by `python -m netscope.cli --help`. CLI output formats are `all`, `csv`, `json`, `md`, `pdf`, and `none`; `--charts` saves standalone PNGs.
 
 ## CI
 
-GitHub Actions runs the test suite on Ubuntu and Windows with Python 3.10 and 3.11. It also generates the synthetic PCAP and executes the CLI demonstration. CI uses mocked live-capture tests; it does not install Npcap/libpcap or capture from a physical interface.
+The GitHub Actions workflow is in `.github/workflows/ci.yml`. It runs automated checks on configured Python/platform combinations and uses synthetic captures. CI does not perform physical live capture.

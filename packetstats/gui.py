@@ -11,7 +11,9 @@ import os
 import queue
 import threading
 import tkinter as tk
+import tkinter.font as tkfont
 import webbrowser
+from itertools import islice
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Dict, List, Optional
@@ -47,9 +49,9 @@ class PacketStatsGUI(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
-        self.title("PacketStats — Network Traffic Analyzer")
-        self.geometry("1150x760")
-        self.minsize(950, 620)
+        self.title("NetScope — Network Traffic Analyzer")
+        self.geometry("1320x860")
+        self.minsize(1040, 700)
 
         # Application state
         self.current_capture_path: Optional[Path] = None
@@ -57,6 +59,9 @@ class PacketStatsGUI(tk.Tk):
         self.statistics_report: Optional[StatisticsReport] = None
         self.flows: List[FlowRecord] = []
         self.alerts: List[AlertRecord] = []
+        self.packet_records = []
+        self.packet_page = 0
+        self.packet_page_size = 500
         self.config: DetectionConfig = DetectionConfig()
         self.msg_queue: queue.Queue = queue.Queue()
         self.is_analyzing = False
@@ -80,58 +85,77 @@ class PacketStatsGUI(tk.Tk):
         except tk.TclError:
             pass
 
-        # Clean color constants
-        self.c_primary = "#1f4e79"
-        self.c_secondary = "#2e75b6"
-        self.c_bg = "#f4f6f9"
-        self.c_card_bg = "#ffffff"
-        self.c_text = "#2b2b2b"
-        self.c_accent = "#d9534f"
+        # Calm, high-contrast pastel palette. Use Lexend when installed and
+        # fall back to a common system font without adding a hard dependency.
+        installed = set(tkfont.families(self))
+        self.ui_font = "Lexend" if "Lexend" in installed else "Segoe UI"
+        self.c_primary = "#465B73"
+        self.c_secondary = "#8BAFA8"
+        self.c_bg = "#F4F6F3"
+        self.c_card_bg = "#FFFFFF"
+        self.c_text = "#34424D"
+        self.c_muted = "#71808A"
+        self.c_accent = "#C77D78"
+        self.c_mint = "#E3F0EB"
+        self.c_lavender = "#EEEAF6"
+        self.c_sand = "#F6F0E3"
+        self.c_border = "#DCE4E2"
 
         self.configure(bg=self.c_bg)
 
-        self.style.configure(".", background=self.c_bg, foreground=self.c_text, font=("Segoe UI", 9))
+        self.style.configure(".", background=self.c_bg, foreground=self.c_text, font=(self.ui_font, 10))
         self.style.configure("TFrame", background=self.c_bg)
-        self.style.configure("Header.TFrame", background=self.c_primary)
-        self.style.configure("Card.TFrame", background=self.c_card_bg, relief="groove")
+        self.style.configure("Header.TFrame", background="#E8EFEB")
+        self.style.configure("Card.TFrame", background=self.c_card_bg, relief="flat")
+        self.style.configure("TLabelframe", background=self.c_bg, bordercolor=self.c_border, relief="solid")
+        self.style.configure("TLabelframe.Label", background=self.c_bg, foreground=self.c_primary, font=(self.ui_font, 10, "bold"))
+        self.style.configure("TNotebook", background=self.c_bg, borderwidth=0, tabmargins=(2, 5, 2, 0))
+        self.style.configure("TNotebook.Tab", background="#E8ECE9", foreground=self.c_primary, padding=(14, 9), font=(self.ui_font, 9, "bold"))
+        self.style.map("TNotebook.Tab", background=[("selected", self.c_card_bg), ("active", "#DFEAE5")], foreground=[("selected", self.c_primary)])
+        self.style.configure("TEntry", fieldbackground="#FFFFFF", foreground=self.c_text, padding=7)
+        self.style.configure("TCombobox", fieldbackground="#FFFFFF", padding=5)
+        self.style.configure("TProgressbar", troughcolor="#E2EAE6", background=self.c_secondary)
 
         self.style.configure(
             "TButton",
-            font=("Segoe UI", 9, "bold"),
-            padding=5,
+            font=(self.ui_font, 9, "bold"),
+            padding=(10, 7),
         )
         self.style.configure(
             "Primary.TButton",
-            font=("Segoe UI", 9, "bold"),
-            foreground="#ffffff",
-            background=self.c_secondary,
-            padding=6,
+            font=(self.ui_font, 9, "bold"),
+            foreground="#FFFFFF",
+            background="#789D95",
+            padding=(12, 8),
         )
-        self.style.map("Primary.TButton", background=[("active", self.c_primary)])
+        self.style.map("Primary.TButton", background=[("active", "#658A82"), ("disabled", "#C9D7D2")])
+        self.style.configure("TButton", foreground=self.c_primary, bordercolor=self.c_border, background="#FFFFFF")
+        self.style.map("TButton", background=[("active", "#E7EFEB")])
 
         self.style.configure(
             "Treeview",
-            background="#ffffff",
-            foreground="#2b2b2b",
-            rowheight=24,
-            fieldbackground="#ffffff",
-            font=("Segoe UI", 9),
+            background="#FFFFFF",
+            foreground=self.c_text,
+            rowheight=29,
+            fieldbackground="#FFFFFF",
+            font=(self.ui_font, 9),
         )
         self.style.configure(
             "Treeview.Heading",
-            font=("Segoe UI", 9, "bold"),
-            background="#e9ecef",
-            foreground="#1f4e79",
-            padding=4,
+            font=(self.ui_font, 9, "bold"),
+            background="#E6EEEA",
+            foreground=self.c_primary,
+            padding=(7, 8),
         )
-        self.style.map("Treeview.Heading", background=[("active", "#d0d7de")])
+        self.style.map("Treeview.Heading", background=[("active", "#D8E5DF")])
+        self.style.map("Treeview", background=[("selected", "#DCEBE5")], foreground=[("selected", self.c_text)])
 
         # Alert severity tags
         self.tag_colors = {
-            "CRITICAL": "#ffcccc",
-            "HIGH": "#ffe0cc",
-            "MEDIUM": "#fff3cd",
-            "LOW": "#e2e3e5",
+            "CRITICAL": "#F3D9DE",
+            "HIGH": "#F5E0D5",
+            "MEDIUM": "#F5EED8",
+            "LOW": "#E5E9E8",
         }
 
     def _build_ui(self) -> None:
@@ -142,19 +166,19 @@ class PacketStatsGUI(tk.Tk):
 
         lbl_title = tk.Label(
             header,
-            text="PacketStats — Network Traffic Analyzer",
-            font=("Segoe UI", 14, "bold"),
-            fg="#ffffff",
-            bg=self.c_primary,
+            text="NetScope — Network Traffic Analyzer",
+            font=(self.ui_font, 16, "bold"),
+            fg=self.c_primary,
+            bg="#E8EFEB",
         )
         lbl_title.pack(side="left")
 
         lbl_subtitle = tk.Label(
             header,
             text="Offline analysis and interface-based live monitoring",
-            font=("Segoe UI", 9, "italic"),
-            fg="#d0e1fd",
-            bg=self.c_primary,
+            font=(self.ui_font, 9),
+            fg=self.c_muted,
+            bg="#E8EFEB",
         )
         lbl_subtitle.pack(side="left", padx=15)
 
@@ -192,6 +216,7 @@ class PacketStatsGUI(tk.Tk):
         self.tab_charts = ttk.Frame(self.notebook, padding=10)
         self.tab_export = ttk.Frame(self.notebook, padding=10)
         self.tab_live = ttk.Frame(self.notebook, padding=10)
+        self.tab_packets = ttk.Frame(self.notebook, padding=10)
 
         self.notebook.add(self.tab_overview, text=" Summary Overview ")
         self.notebook.add(self.tab_flows, text=" Bidirectional Flows ")
@@ -200,6 +225,7 @@ class PacketStatsGUI(tk.Tk):
         self.notebook.add(self.tab_charts, text=" Visualisations ")
         self.notebook.add(self.tab_export, text=" Reports & Exports ")
         self.notebook.add(self.tab_live, text=" Live Monitoring ")
+        self.notebook.insert(1, self.tab_packets, text=" Packet Explorer ")
 
         self._build_tab_overview()
         self._build_tab_flows()
@@ -208,6 +234,7 @@ class PacketStatsGUI(tk.Tk):
         self._build_tab_charts()
         self._build_tab_export()
         self._build_tab_live()
+        self._build_tab_packets()
 
         # Status Footer
         footer = ttk.Frame(self, padding=(15, 6))
@@ -229,7 +256,7 @@ class PacketStatsGUI(tk.Tk):
 
         self.metric_cards: Dict[str, tk.Label] = {}
         card_defs = [
-            ("Packets Processed", "0"),
+            ("Packets Captured", "0"),
             ("Observed Bytes", "0 B"),
             ("Distinct Endpoints", "0"),
             ("Identified Flows", "0"),
@@ -238,14 +265,16 @@ class PacketStatsGUI(tk.Tk):
         ]
 
         for idx, (title, default_val) in enumerate(card_defs):
-            c = tk.Frame(cards_frame, bg=self.c_card_bg, relief="ridge", bd=1)
-            c.grid(row=0, column=idx, padx=5, sticky="nsew")
+            tile_colors = (self.c_mint, self.c_lavender, "#E8F0F5", self.c_sand, "#EAF0E4", "#F5E5E3")
+            tile_bg = tile_colors[idx % len(tile_colors)]
+            c = tk.Frame(cards_frame, bg=tile_bg, relief="flat", bd=0, highlightthickness=1, highlightbackground=self.c_border)
+            c.grid(row=0, column=idx, padx=5, pady=4, sticky="nsew")
             cards_frame.grid_columnconfigure(idx, weight=1)
 
-            lbl_t = tk.Label(c, text=title, font=("Segoe UI", 8, "bold"), fg="#6c757d", bg=self.c_card_bg)
-            lbl_t.pack(anchor="w", padx=8, pady=(6, 2))
-            lbl_v = tk.Label(c, text=default_val, font=("Segoe UI", 14, "bold"), fg=self.c_primary, bg=self.c_card_bg)
-            lbl_v.pack(anchor="w", padx=8, pady=(0, 6))
+            lbl_t = tk.Label(c, text=title, font=(self.ui_font, 8, "bold"), fg=self.c_muted, bg=tile_bg)
+            lbl_t.pack(anchor="w", padx=11, pady=(9, 3))
+            lbl_v = tk.Label(c, text=default_val, font=(self.ui_font, 15, "bold"), fg=self.c_primary, bg=tile_bg)
+            lbl_v.pack(anchor="w", padx=11, pady=(0, 9))
             self.metric_cards[title] = lbl_v
 
         # Capture Details & Protocols split
@@ -293,6 +322,95 @@ class PacketStatsGUI(tk.Tk):
 
         self.tree_flows.pack(side="left", fill="both", expand=True)
         sb.pack(side="right", fill="y")
+
+    def _build_tab_packets(self) -> None:
+        """Build a paginated, searchable packet table and header inspector."""
+        controls = ttk.Frame(self.tab_packets)
+        controls.pack(fill="x", pady=(0, 6))
+        ttk.Label(controls, text="Search packets").pack(side="left")
+        self.packet_search = tk.StringVar()
+        entry = ttk.Entry(controls, textvariable=self.packet_search, width=38)
+        entry.pack(side="left", padx=6)
+        entry.bind("<KeyRelease>", lambda _event: self._render_packet_page(reset=True))
+        ttk.Label(controls, text="Protocol").pack(side="left", padx=(12, 2))
+        self.packet_protocol = tk.StringVar(value="All")
+        combo = ttk.Combobox(controls, textvariable=self.packet_protocol, values=("All", "TCP", "UDP", "ICMP", "ICMPv6", "IGMP", "DNS", "ARP", "IPv4", "IPv6"), state="readonly", width=10)
+        combo.pack(side="left")
+        combo.bind("<<ComboboxSelected>>", lambda _event: self._render_packet_page(reset=True))
+        ttk.Button(controls, text="Previous", command=lambda: self._step_packet_page(-1)).pack(side="right")
+        ttk.Button(controls, text="Next", command=lambda: self._step_packet_page(1)).pack(side="right", padx=4)
+        self.packet_page_label = ttk.Label(controls, text="No capture loaded")
+        self.packet_page_label.pack(side="right", padx=12)
+        split = ttk.PanedWindow(self.tab_packets, orient="vertical")
+        split.pack(fill="both", expand=True)
+        table_frame = ttk.Frame(split)
+        split.add(table_frame, weight=4)
+        cols = ("Number", "Timestamp", "Source", "Destination", "Protocol", "Length", "Flags", "Info")
+        self.tree_packets = ttk.Treeview(table_frame, columns=cols, show="headings", height=16)
+        for col in cols:
+            self.tree_packets.heading(col, text=col, command=lambda c=col: self._sort_treeview(self.tree_packets, c, False))
+            self.tree_packets.column(col, width=110, anchor="w")
+        self.tree_packets.column("Number", width=65, anchor="e")
+        self.tree_packets.column("Info", width=220)
+        sb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree_packets.yview)
+        self.tree_packets.configure(yscrollcommand=sb.set)
+        self.tree_packets.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+        self.tree_packets.bind("<<TreeviewSelect>>", self._on_packet_selected)
+        detail_frame = ttk.LabelFrame(split, text="Decoded packet header details (payload is not retained)", padding=6)
+        split.add(detail_frame, weight=2)
+        self.packet_detail = tk.Text(detail_frame, height=8, wrap="none", font=("Consolas", 9), state="disabled")
+        self.packet_detail.pack(fill="both", expand=True)
+
+    def _filtered_packets(self):
+        query = self.packet_search.get().strip().lower()
+        proto = self.packet_protocol.get()
+        for packet in self.packet_records:
+            matches_protocol = packet.protocol == proto
+            if proto == "DNS":
+                matches_protocol = bool(packet.dns_query)
+            elif proto in ("IPv4", "IPv6"):
+                matches_protocol = packet.details.get("network") == proto
+            if proto != "All" and not matches_protocol:
+                continue
+            if query:
+                searchable = " ".join(str(v) for v in (packet.index, packet.datetime_str, packet.src_ip, packet.dst_ip, packet.protocol, packet.src_port, packet.dst_port, packet.dns_query)).lower()
+                if query not in searchable:
+                    continue
+            yield packet
+
+    def _render_packet_page(self, reset=False):
+        if reset:
+            self.packet_page = 0
+        count = sum(1 for _packet in self._filtered_packets())
+        pages = max(1, (count + self.packet_page_size - 1) // self.packet_page_size)
+        self.packet_page = max(0, min(self.packet_page, pages - 1))
+        start = self.packet_page * self.packet_page_size
+        page = islice(self._filtered_packets(), start, start + self.packet_page_size)
+        self.tree_packets.delete(*self.tree_packets.get_children())
+        for p in page:
+            src = f"{p.src_ip or '—'}:{p.src_port}" if p.src_port is not None else (p.src_ip or "—")
+            dst = f"{p.dst_ip or '—'}:{p.dst_port}" if p.dst_port is not None else (p.dst_ip or "—")
+            info = p.dns_query or p.error_reason or p.parsing_status
+            self.tree_packets.insert("", "end", iid=str(p.index), values=(p.index, p.datetime_str, src, dst, p.protocol, p.wire_length, p.tcp_flags or "", info))
+        self.packet_page_label.config(text=f"{count:,} packets · page {self.packet_page + 1}/{pages}")
+
+    def _step_packet_page(self, delta):
+        self.packet_page += delta
+        self._render_packet_page()
+
+    def _on_packet_selected(self, _event=None):
+        selected = self.tree_packets.selection()
+        if not selected:
+            return
+        packet = next((p for p in self.packet_records if p.index == int(selected[0])), None)
+        if packet is None:
+            return
+        fields = {"Packet": packet.index, "Timestamp (UTC)": packet.datetime_str, "Primary protocol": packet.protocol, "Source": packet.src_ip, "Destination": packet.dst_ip, "Source port": packet.src_port, "Destination port": packet.dst_port, "Captured length": packet.length, "Wire length": packet.wire_length, "TCP flags": packet.tcp_flags, "DNS query": packet.dns_query, "DNS type": packet.dns_qtype, "Parse status": packet.parsing_status, "Error": packet.error_reason, **packet.details}
+        self.packet_detail.config(state="normal")
+        self.packet_detail.delete("1.0", "end")
+        self.packet_detail.insert("1.0", "\n".join(f"{key}: {value}" for key, value in fields.items() if value is not None))
+        self.packet_detail.config(state="disabled")
 
     # ---------------- TAB 3: ENDPOINTS ----------------
     def _build_tab_endpoints(self) -> None:
@@ -746,11 +864,9 @@ class PacketStatsGUI(tk.Tk):
 
     def _worker_analysis(self, capture_file: Path) -> None:
         try:
-            summary, stats, flows, alerts = run_analysis_pipeline(
-                capture_path=capture_file,
-                config=self.config,
-            )
-            self.msg_queue.put(("SUCCESS", (summary, stats, flows, alerts)))
+            # include_packets is requested by the GUI for Packet Explorer.
+            result = run_analysis_pipeline(capture_path=capture_file, config=self.config, include_packets=True)
+            self.msg_queue.put(("SUCCESS", result))
         except Exception as e:
             self.msg_queue.put(("ERROR", str(e)))
 
@@ -759,7 +875,9 @@ class PacketStatsGUI(tk.Tk):
             while True:
                 msg_type, data = self.msg_queue.get_nowait()
                 if msg_type == "SUCCESS":
-                    summary, stats, flows, alerts = data
+                    summary, stats, flows, alerts, packets = data
+                    self.packet_records = packets
+                    self._render_packet_page(reset=True)
                     self._on_analysis_complete(summary, stats, flows, alerts)
                 elif msg_type == "ERROR":
                     self._on_analysis_failed(data)
@@ -838,11 +956,11 @@ class PacketStatsGUI(tk.Tk):
         self.alerts = alerts
 
         # Update status
-        self.lbl_status.config(text=f"Analysis complete: {summary.packets_processed:,} packets processed.")
+        self.lbl_status.config(text=f"Analysis complete: {summary.packets_captured:,} packets captured; {summary.packets_failed:,} parse errors.")
         self.lbl_runtime.config(text=f"Runtime: {summary.analysis_duration_seconds:.2f}s")
 
         # Update metric cards
-        self.metric_cards["Packets Processed"].config(text=f"{summary.packets_processed:,}")
+        self.metric_cards["Packets Captured"].config(text=f"{summary.packets_captured:,}")
         self.metric_cards["Observed Bytes"].config(text=f"{summary.total_bytes / 1024:.1f} KB")
         self.metric_cards["Distinct Endpoints"].config(text=f"{summary.distinct_endpoints:,}")
         self.metric_cards["Identified Flows"].config(text=f"{summary.identified_flows:,}")
@@ -856,13 +974,18 @@ class PacketStatsGUI(tk.Tk):
         meta_str = (
             f"File Path        : {summary.capture_file}\n"
             f"File Size        : {summary.file_size_bytes:,} bytes\n"
-            f"Packets Ok       : {summary.packets_processed:,}\n"
-            f"Packets Errored  : {summary.packets_skipped + summary.packets_partial:,}\n"
+            f"Packets Captured : {summary.packets_captured:,}\n"
+            f"Fully Parsed     : {summary.packets_processed:,}\n"
+            f"Partial Parses   : {summary.packets_partial:,}\n"
+            f"Parse Errors     : {summary.packets_failed:,}\n"
+            f"Classified       : {summary.packets_classified:,}\n"
+            f"Included in Flows: {summary.packets_in_flows:,}\n"
+            f"No Flow Endpoints: {summary.packets_without_flow_endpoints:,}\n"
             f"Capture Duration : {summary.capture_duration_seconds:.2f} seconds\n"
             f"Avg Packet Size  : {stats.packet_sizes.mean_length:.1f} bytes\n"
             f"Max Packet Size  : {stats.packet_sizes.max_length} bytes\n"
-            f"Top 1 Talker     : {stats.traffic_concentration_top1_pct:.1f}% concentration\n"
-            f"Top 3 Talkers    : {stats.traffic_concentration_top3_pct:.1f}% concentration\n"
+            f"Top 1 Source     : {stats.source_concentration_top1_pct:.1f}% of captured packets\n"
+            f"Top 3 Sources    : {stats.source_concentration_top3_pct:.1f}% of captured packets\n"
         )
         self.txt_metadata.config(state="normal")
         self.txt_metadata.delete("1.0", "end")

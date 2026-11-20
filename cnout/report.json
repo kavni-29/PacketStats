@@ -1,0 +1,610 @@
+{
+  "metadata": {
+    "generated_at_utc": "2026-11-18T23:57:14.019388+00:00",
+    "generator": "NetScope 1.0.0",
+    "capture_file": "live interface: \\Device\\NPF_{ADD140DE-5E06-4124-A825-E49E71690E5F}",
+    "file_size_bytes": 0
+  },
+  "summary": {
+    "capture_file": "live interface: \\Device\\NPF_{ADD140DE-5E06-4124-A825-E49E71690E5F}",
+    "file_size_bytes": 0,
+    "packets_processed": 253,
+    "packets_skipped": 0,
+    "packets_partial": 0,
+    "total_bytes": 159818,
+    "distinct_endpoints": 9,
+    "identified_flows": 6,
+    "protocols_observed": {
+      "UDP": 243,
+      "IP": 5,
+      "TCP": 5
+    },
+    "alerts_generated": 6,
+    "analysis_duration_seconds": 0.0,
+    "capture_start_time": 1795046183.980922,
+    "capture_end_time": 1795046185.714385,
+    "capture_duration_seconds": 1.7335
+  },
+  "configuration": {
+    "high_packet_rate_threshold": 50,
+    "high_packet_rate_window_sec": 1.0,
+    "high_packet_rate_policy": "source",
+    "port_diversity_threshold": 15,
+    "port_diversity_window_sec": 10.0,
+    "syn_ratio_threshold": 0.75,
+    "syn_min_packets": 10,
+    "volume_deviation_zscore": 2.5,
+    "volume_deviation_min_intervals": 4,
+    "volume_deviation_interval_sec": 2.0,
+    "traffic_concentration_threshold": 0.5,
+    "traffic_concentration_min_packets": 30,
+    "repeated_comm_threshold": 25,
+    "repeated_comm_window_sec": 5.0,
+    "max_packets_safety_limit": 500000,
+    "time_bucket_interval_sec": 1.0
+  },
+  "protocols": {
+    "UDP": {
+      "protocol": "UDP",
+      "packet_count": 243,
+      "byte_count": 159113,
+      "packet_percentage": 96.05,
+      "byte_percentage": 99.56
+    },
+    "IP": {
+      "protocol": "IP",
+      "packet_count": 5,
+      "byte_count": 270,
+      "packet_percentage": 1.98,
+      "byte_percentage": 0.17
+    },
+    "TCP": {
+      "protocol": "TCP",
+      "packet_count": 5,
+      "byte_count": 435,
+      "packet_percentage": 1.98,
+      "byte_percentage": 0.27
+    }
+  },
+  "packet_sizes": {
+    "count": 253,
+    "min_length": 54,
+    "max_length": 1277,
+    "mean_length": 631.69,
+    "median_length": 624.0,
+    "percentile_25": 124.0,
+    "percentile_75": 1135.0,
+    "percentile_95": 1254.0,
+    "std_dev": 478.34,
+    "length_bins": {
+      "0-64 B": 5,
+      "65-128 B": 65,
+      "129-256 B": 37,
+      "257-512 B": 2,
+      "513-1024 B": 46,
+      "1025-1518 B": 98,
+      "1519+ B": 0
+    }
+  },
+  "top_endpoints": {
+    "top_sources": [
+      {
+        "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "packets_sent": 136,
+        "packets_received": 105,
+        "bytes_sent": 111136,
+        "bytes_received": 47709,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2001:4860:4864:6:4000::17",
+        "packets_sent": 105,
+        "packets_received": 136,
+        "bytes_sent": 47709,
+        "bytes_received": 111136,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.69",
+        "packets_sent": 3,
+        "packets_received": 1,
+        "bytes_sent": 270,
+        "bytes_received": 106,
+        "total_packets": 4,
+        "total_bytes": 376,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.60",
+        "packets_sent": 3,
+        "packets_received": 0,
+        "bytes_sent": 162,
+        "bytes_received": 0,
+        "total_packets": 3,
+        "total_bytes": 162,
+        "distinct_dest_ports": 0
+      },
+      {
+        "endpoint": "2606:4700:9641:d8b7:9aa6:6:ccf5:ac50",
+        "packets_sent": 2,
+        "packets_received": 1,
+        "bytes_sent": 172,
+        "bytes_received": 102,
+        "total_packets": 3,
+        "total_bytes": 274,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2405:201:402d:e14b:ed7a:7422:37d9:b6a8",
+        "packets_sent": 2,
+        "packets_received": 3,
+        "bytes_sent": 177,
+        "bytes_received": 258,
+        "total_packets": 5,
+        "total_bytes": 435,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2606:4700:9642:7cbc:c274:630:5ff2:75c4",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 86,
+        "bytes_received": 75,
+        "total_packets": 2,
+        "total_bytes": 161,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "142.250.82.215",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 106,
+        "bytes_received": 162,
+        "total_packets": 2,
+        "total_bytes": 268,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "224.0.0.22",
+        "packets_sent": 0,
+        "packets_received": 5,
+        "bytes_sent": 0,
+        "bytes_received": 270,
+        "total_packets": 5,
+        "total_bytes": 270,
+        "distinct_dest_ports": 0
+      }
+    ],
+    "top_destinations": [
+      {
+        "endpoint": "2001:4860:4864:6:4000::17",
+        "packets_sent": 105,
+        "packets_received": 136,
+        "bytes_sent": 47709,
+        "bytes_received": 111136,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "packets_sent": 136,
+        "packets_received": 105,
+        "bytes_sent": 111136,
+        "bytes_received": 47709,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "224.0.0.22",
+        "packets_sent": 0,
+        "packets_received": 5,
+        "bytes_sent": 0,
+        "bytes_received": 270,
+        "total_packets": 5,
+        "total_bytes": 270,
+        "distinct_dest_ports": 0
+      },
+      {
+        "endpoint": "2405:201:402d:e14b:ed7a:7422:37d9:b6a8",
+        "packets_sent": 2,
+        "packets_received": 3,
+        "bytes_sent": 177,
+        "bytes_received": 258,
+        "total_packets": 5,
+        "total_bytes": 435,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.69",
+        "packets_sent": 3,
+        "packets_received": 1,
+        "bytes_sent": 270,
+        "bytes_received": 106,
+        "total_packets": 4,
+        "total_bytes": 376,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2606:4700:9641:d8b7:9aa6:6:ccf5:ac50",
+        "packets_sent": 2,
+        "packets_received": 1,
+        "bytes_sent": 172,
+        "bytes_received": 102,
+        "total_packets": 3,
+        "total_bytes": 274,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2606:4700:9642:7cbc:c274:630:5ff2:75c4",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 86,
+        "bytes_received": 75,
+        "total_packets": 2,
+        "total_bytes": 161,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "142.250.82.215",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 106,
+        "bytes_received": 162,
+        "total_packets": 2,
+        "total_bytes": 268,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.60",
+        "packets_sent": 3,
+        "packets_received": 0,
+        "bytes_sent": 162,
+        "bytes_received": 0,
+        "total_packets": 3,
+        "total_bytes": 162,
+        "distinct_dest_ports": 0
+      }
+    ],
+    "top_talkers_by_bytes": [
+      {
+        "endpoint": "2001:4860:4864:6:4000::17",
+        "packets_sent": 105,
+        "packets_received": 136,
+        "bytes_sent": 47709,
+        "bytes_received": 111136,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "packets_sent": 136,
+        "packets_received": 105,
+        "bytes_sent": 111136,
+        "bytes_received": 47709,
+        "total_packets": 241,
+        "total_bytes": 158845,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2405:201:402d:e14b:ed7a:7422:37d9:b6a8",
+        "packets_sent": 2,
+        "packets_received": 3,
+        "bytes_sent": 177,
+        "bytes_received": 258,
+        "total_packets": 5,
+        "total_bytes": 435,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.69",
+        "packets_sent": 3,
+        "packets_received": 1,
+        "bytes_sent": 270,
+        "bytes_received": 106,
+        "total_packets": 4,
+        "total_bytes": 376,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "2606:4700:9641:d8b7:9aa6:6:ccf5:ac50",
+        "packets_sent": 2,
+        "packets_received": 1,
+        "bytes_sent": 172,
+        "bytes_received": 102,
+        "total_packets": 3,
+        "total_bytes": 274,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "224.0.0.22",
+        "packets_sent": 0,
+        "packets_received": 5,
+        "bytes_sent": 0,
+        "bytes_received": 270,
+        "total_packets": 5,
+        "total_bytes": 270,
+        "distinct_dest_ports": 0
+      },
+      {
+        "endpoint": "142.250.82.215",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 106,
+        "bytes_received": 162,
+        "total_packets": 2,
+        "total_bytes": 268,
+        "distinct_dest_ports": 1
+      },
+      {
+        "endpoint": "192.168.29.60",
+        "packets_sent": 3,
+        "packets_received": 0,
+        "bytes_sent": 162,
+        "bytes_received": 0,
+        "total_packets": 3,
+        "total_bytes": 162,
+        "distinct_dest_ports": 0
+      },
+      {
+        "endpoint": "2606:4700:9642:7cbc:c274:630:5ff2:75c4",
+        "packets_sent": 1,
+        "packets_received": 1,
+        "bytes_sent": 86,
+        "bytes_received": 75,
+        "total_packets": 2,
+        "total_bytes": 161,
+        "distinct_dest_ports": 1
+      }
+    ]
+  },
+  "traffic_concentration": {
+    "top1_percent": 95.26,
+    "top3_percent": 192.49,
+    "top5_percent": 196.05
+  },
+  "time_series": [
+    {
+      "bucket_index": 0,
+      "relative_start_sec": 0.0,
+      "relative_end_sec": 1.0,
+      "epoch_start_sec": 1795046183.9809,
+      "epoch_end_sec": 1795046184.9809,
+      "packet_count": 150,
+      "byte_count": 89719
+    },
+    {
+      "bucket_index": 1,
+      "relative_start_sec": 1.0,
+      "relative_end_sec": 2.0,
+      "epoch_start_sec": 1795046184.9809,
+      "epoch_end_sec": 1795046185.9809,
+      "packet_count": 103,
+      "byte_count": 70099
+    }
+  ],
+  "flows": [
+    {
+      "flow_id": "UDP:2001:4860:4864:6:4000::17:3478<->2405:201:402d:e14b:d0b1:730e:60e7:1189:52163",
+      "protocol": "UDP",
+      "endpoint_a": "2001:4860:4864:6:4000::17:3478",
+      "endpoint_b": "2405:201:402d:e14b:d0b1:730e:60e7:1189:52163",
+      "packets_a_to_b": 105,
+      "packets_b_to_a": 136,
+      "bytes_a_to_b": 47709,
+      "bytes_b_to_a": 111136,
+      "total_packets": 241,
+      "total_bytes": 158845,
+      "duration_sec": 1.7335,
+      "tcp_flags": {},
+      "dns_queries": []
+    },
+    {
+      "flow_id": "TCP:2405:201:402d:e14b:ed7a:7422:37d9:b6a8:2363<->2606:4700:9641:d8b7:9aa6:6:ccf5:ac50:443",
+      "protocol": "TCP",
+      "endpoint_a": "2405:201:402d:e14b:ed7a:7422:37d9:b6a8:2363",
+      "endpoint_b": "2606:4700:9641:d8b7:9aa6:6:ccf5:ac50:443",
+      "packets_a_to_b": 1,
+      "packets_b_to_a": 2,
+      "bytes_a_to_b": 102,
+      "bytes_b_to_a": 172,
+      "total_packets": 3,
+      "total_bytes": 274,
+      "duration_sec": 0.0423,
+      "tcp_flags": {
+        "ACK": 3,
+        "PSH": 2
+      },
+      "dns_queries": []
+    },
+    {
+      "flow_id": "IP:192.168.29.60<->224.0.0.22",
+      "protocol": "IP",
+      "endpoint_a": "192.168.29.60",
+      "endpoint_b": "224.0.0.22",
+      "packets_a_to_b": 3,
+      "packets_b_to_a": 0,
+      "bytes_a_to_b": 162,
+      "bytes_b_to_a": 0,
+      "total_packets": 3,
+      "total_bytes": 162,
+      "duration_sec": 0.0,
+      "tcp_flags": {},
+      "dns_queries": []
+    },
+    {
+      "flow_id": "IP:192.168.29.69<->224.0.0.22",
+      "protocol": "IP",
+      "endpoint_a": "192.168.29.69",
+      "endpoint_b": "224.0.0.22",
+      "packets_a_to_b": 2,
+      "packets_b_to_a": 0,
+      "bytes_a_to_b": 108,
+      "bytes_b_to_a": 0,
+      "total_packets": 2,
+      "total_bytes": 108,
+      "duration_sec": 0.4995,
+      "tcp_flags": {},
+      "dns_queries": []
+    },
+    {
+      "flow_id": "TCP:2405:201:402d:e14b:ed7a:7422:37d9:b6a8:11123<->2606:4700:9642:7cbc:c274:630:5ff2:75c4:443",
+      "protocol": "TCP",
+      "endpoint_a": "2405:201:402d:e14b:ed7a:7422:37d9:b6a8:11123",
+      "endpoint_b": "2606:4700:9642:7cbc:c274:630:5ff2:75c4:443",
+      "packets_a_to_b": 1,
+      "packets_b_to_a": 1,
+      "bytes_a_to_b": 75,
+      "bytes_b_to_a": 86,
+      "total_packets": 2,
+      "total_bytes": 161,
+      "duration_sec": 0.032,
+      "tcp_flags": {
+        "ACK": 2
+      },
+      "dns_queries": []
+    },
+    {
+      "flow_id": "UDP:142.250.82.215:3478<->192.168.29.69:52162",
+      "protocol": "UDP",
+      "endpoint_a": "142.250.82.215:3478",
+      "endpoint_b": "192.168.29.69:52162",
+      "packets_a_to_b": 1,
+      "packets_b_to_a": 1,
+      "bytes_a_to_b": 106,
+      "bytes_b_to_a": 162,
+      "total_packets": 2,
+      "total_bytes": 268,
+      "duration_sec": 0.0113,
+      "tcp_flags": {},
+      "dns_queries": []
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "ALT-CONC-001",
+      "rule_id": "RULE_TRAFFIC_CONCENTRATION",
+      "rule_name": "Endpoint Traffic Concentration",
+      "severity": "MEDIUM",
+      "endpoint": "2001:4860:4864:6:4000::17",
+      "time_window": "Capture Duration",
+      "observed_value": "94.0% (141/150 packets)",
+      "threshold": ">=50.0% of capture volume",
+      "explanation": "Traffic concentration indicator: Endpoint 2001:4860:4864:6:4000::17 accounted for 141 out of 150 captured packets (94.0%).",
+      "evidence_summary": "Endpoint total packets: 141, bytes: 89,100. Ratio: 0.940 >= threshold 0.5.",
+      "supporting_metadata": {
+        "endpoint": "2001:4860:4864:6:4000::17",
+        "endpoint_packets": 141,
+        "endpoint_bytes": 89100,
+        "total_capture_packets": 150,
+        "ratio": 0.94,
+        "false_positive_context": "High traffic concentration is expected for central servers, default gateways, DNS resolvers, or when a capture isolates a specific client-server transaction."
+      }
+    },
+    {
+      "alert_id": "ALT-CONC-002",
+      "rule_id": "RULE_TRAFFIC_CONCENTRATION",
+      "rule_name": "Endpoint Traffic Concentration",
+      "severity": "MEDIUM",
+      "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+      "time_window": "Capture Duration",
+      "observed_value": "94.0% (141/150 packets)",
+      "threshold": ">=50.0% of capture volume",
+      "explanation": "Traffic concentration indicator: Endpoint 2405:201:402d:e14b:d0b1:730e:60e7:1189 accounted for 141 out of 150 captured packets (94.0%).",
+      "evidence_summary": "Endpoint total packets: 141, bytes: 89,100. Ratio: 0.940 >= threshold 0.5.",
+      "supporting_metadata": {
+        "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "endpoint_packets": 141,
+        "endpoint_bytes": 89100,
+        "total_capture_packets": 150,
+        "ratio": 0.94,
+        "false_positive_context": "High traffic concentration is expected for central servers, default gateways, DNS resolvers, or when a capture isolates a specific client-server transaction."
+      }
+    },
+    {
+      "alert_id": "ALT-RATE-001",
+      "rule_id": "RULE_HIGH_PACKET_RATE",
+      "rule_name": "High Packet Rate Observation",
+      "severity": "MEDIUM",
+      "endpoint": "2001:4860:4864:6:4000::17",
+      "time_window": "1.0s [1795046183.981 - 1795046184.965]",
+      "observed_value": "62 packets (62.0 pkts/s)",
+      "threshold": ">50 packets / 1.0s",
+      "explanation": "Endpoint 2001:4860:4864:6:4000::17 transmitted 62 packets within a 1.0s window, exceeding the configured threshold of 50 packets.",
+      "evidence_summary": "Peak packet count: 62 observed in window [1795046183.981 - 1795046184.965]. Policy: source.",
+      "supporting_metadata": {
+        "endpoint": "2001:4860:4864:6:4000::17",
+        "window_seconds": 1.0,
+        "packet_count": 62,
+        "rate_pkts_per_sec": 62.0,
+        "false_positive_context": "Legitimate bulk transfers, database replication, or file downloads can routinely produce high packet rates without malice."
+      }
+    },
+    {
+      "alert_id": "ALT-RATE-002",
+      "rule_id": "RULE_HIGH_PACKET_RATE",
+      "rule_name": "High Packet Rate Observation",
+      "severity": "MEDIUM",
+      "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+      "time_window": "1.0s [1795046184.008 - 1795046184.979]",
+      "observed_value": "79 packets (79.0 pkts/s)",
+      "threshold": ">50 packets / 1.0s",
+      "explanation": "Endpoint 2405:201:402d:e14b:d0b1:730e:60e7:1189 transmitted 79 packets within a 1.0s window, exceeding the configured threshold of 50 packets.",
+      "evidence_summary": "Peak packet count: 79 observed in window [1795046184.008 - 1795046184.979]. Policy: source.",
+      "supporting_metadata": {
+        "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "window_seconds": 1.0,
+        "packet_count": 79,
+        "rate_pkts_per_sec": 79.0,
+        "false_positive_context": "Legitimate bulk transfers, database replication, or file downloads can routinely produce high packet rates without malice."
+      }
+    },
+    {
+      "alert_id": "ALT-REP-001",
+      "rule_id": "RULE_REPEATED_COMMUNICATION",
+      "rule_name": "Repeated Communication Pattern",
+      "severity": "MEDIUM",
+      "endpoint": "2001:4860:4864:6:4000::17 -> 2405:201:402d:e14b:d0b1:730e:60e7:1189:52163",
+      "time_window": "5.0s [1795046183.981 - 1795046184.965]",
+      "observed_value": "62 repeated packets",
+      "threshold": ">25 packets / 5.0s",
+      "explanation": "Repetitive communication pattern: 2001:4860:4864:6:4000::17 -> 2405:201:402d:e14b:d0b1:730e:60e7:1189:52163 transmitted 62 packets within a 5.0s window.",
+      "evidence_summary": "Observed 62 packets to identical destination in 5.0s window.",
+      "supporting_metadata": {
+        "source_ip": "2001:4860:4864:6:4000::17",
+        "destination_ip": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "destination_port": 52163,
+        "burst_packet_count": 62,
+        "window_seconds": 5.0,
+        "false_positive_context": "Application keep-alive pings, health checks, rapid API polling, and NTP synchronization exhibit repeated communication patterns."
+      }
+    },
+    {
+      "alert_id": "ALT-REP-002",
+      "rule_id": "RULE_REPEATED_COMMUNICATION",
+      "rule_name": "Repeated Communication Pattern",
+      "severity": "MEDIUM",
+      "endpoint": "2405:201:402d:e14b:d0b1:730e:60e7:1189 -> 2001:4860:4864:6:4000::17:3478",
+      "time_window": "5.0s [1795046184.008 - 1795046184.979]",
+      "observed_value": "79 repeated packets",
+      "threshold": ">25 packets / 5.0s",
+      "explanation": "Repetitive communication pattern: 2405:201:402d:e14b:d0b1:730e:60e7:1189 -> 2001:4860:4864:6:4000::17:3478 transmitted 79 packets within a 5.0s window.",
+      "evidence_summary": "Observed 79 packets to identical destination in 5.0s window.",
+      "supporting_metadata": {
+        "source_ip": "2405:201:402d:e14b:d0b1:730e:60e7:1189",
+        "destination_ip": "2001:4860:4864:6:4000::17",
+        "destination_port": 3478,
+        "burst_packet_count": 79,
+        "window_seconds": 5.0,
+        "false_positive_context": "Application keep-alive pings, health checks, rapid API polling, and NTP synchronization exhibit repeated communication patterns."
+      }
+    }
+  ],
+  "defensive_security_notice": "NetScope is an offline defensive analysis tool. Anomaly indicators signify statistical deviations or traffic patterns requiring triage; they do not constitute conclusive evidence of hostile intrusion."
+}

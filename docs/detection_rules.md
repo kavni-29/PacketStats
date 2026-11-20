@@ -1,111 +1,43 @@
-# PacketStats Explainable Anomaly Detection Rules Specification
+# Detection rules
 
-## 1. Overview & Detection Philosophy
+NetScope currently implements six deterministic heuristic rules. A triggered rule means the observed values crossed a configured threshold; it does not prove malicious activity. Capture duration, direction visibility, sampling, and ordinary application behavior affect results.
 
-PacketStats operates on **transparent, explainable heuristics** rather than opaque machine-learning classifiers. Every alert produced must be:
-- **Auditable**: Traced to specific observed packet indices, timestamps, and addresses.
-- **Configurable**: Thresholds and timing windows can be altered via JSON configuration without touching source code.
-- **Honest & Defensive**: Communicated as an indicator requiring investigation rather than a definitive assertion of hostility.
+Rules are evaluated by `DetectionEngine` in `netscope/detectors.py`. Thresholds and windows are defined in `DetectionConfig` (`netscope/config.py`) and can be loaded from JSON. See `python -m netscope.cli --help` and the config class for available options.
 
----
+## 1. High Packet Rate Observation
 
-## 2. Detection Rule Specifications
+Counts source-originated packet timestamps in a sliding window of width `high_packet_rate_window_sec`. An alert is generated when the highest window count is greater than `high_packet_rate_threshold`. The configured policy may count source only or both endpoint participations. Bursty downloads, streaming, and backups can trigger it.
 
-### Rule 1: High Packet Rate Observation (`RULE_HIGH_PACKET_RATE`)
+## 2. Destination Port Diversity
 
-- **Purpose**: Detects endpoints sending bursts of traffic that exceed baseline packet rates.
-- **Formula / Logic**:
-  Let $T_e = [t_1, t_2, \dots, t_k]$ be the sorted timestamps of packets transmitted by source endpoint $e$.
-  A sliding window of width $W = \text{window\_sec}$ counts packets in $[t_{\text{left}}, t_{\text{right}}]$ such that $t_{\text{right}} - t_{\text{left}} \le W$.
-  An alert triggers if:
-  $$\max (\text{count}(W)) > \text{threshold}$$
-- **Default Configuration**:
-  - `high_packet_rate_threshold`: `50` packets
-  - `high_packet_rate_window_sec`: `1.0` second
-  - `high_packet_rate_policy`: `"source"`
-- **Severity**: `HIGH` if observed $\ge 2 \times \text{threshold}$, else `MEDIUM`.
-- **Benign False Positives**: High-throughput file downloads, local database replication, media streaming buffers.
+For each source, counts distinct destination ports within `port_diversity_window_sec`. An alert is generated when the observed maximum is greater than `port_diversity_threshold`. Browsers, peer-to-peer software, and service discovery can contact many ports legitimately.
 
----
+## 3. High TCP SYN Ratio Without ACK
 
-### Rule 2: Destination Port Diversity (`RULE_PORT_DIVERSITY`)
+For each source, computes the fraction of its observed TCP packets that have SYN set and ACK clear. It evaluates only when the configured minimum TCP packet count is met and the ratio reaches `syn_ratio_threshold`. Asymmetric capture, loss, or incomplete captures can make an ordinary connection look incomplete. This rule does not establish that a handshake failed at the remote host.
 
-- **Purpose**: Heuristic identification of vertical or horizontal port scanning and service discovery.
-- **Formula / Logic**:
-  For source endpoint $s$, let $E_s = \{(t_i, p_i)\}$ represent observed destination ports $p_i$ at timestamps $t_i$.
-  Within sliding window $W$, determine the cardinality of unique destination ports contacted:
-  $$U_s(W) = |\{p_i \mid t_{\text{start}} \le t_i \le t_{\text{start}} + W\}|$$
-  An alert triggers if:
-  $$\max(U_s(W)) > \text{threshold}$$
-- **Default Configuration**:
-  - `port_diversity_threshold`: `15` distinct ports
-  - `port_diversity_window_sec`: `10.0` seconds
-- **Severity**: `HIGH` if distinct ports $\ge 2 \times \text{threshold}$, else `MEDIUM`.
-- **Benign False Positives**: Web browsers opening multi-origin connections, peer-to-peer torrent clients, service discovery protocols (UPnP, mDNS).
+## 4. Traffic Volume Statistical Deviation
 
----
+Calculates byte totals for configured time buckets, then compares each bucket with the capture's mean using a sample standard deviation. A bucket can trigger when it exceeds `volume_deviation_zscore`, subject to the minimum bucket count. Short captures and highly uneven traffic provide weak baselines; a spike can be a normal transfer.
 
-### Rule 3: High TCP SYN Ratio Without ACK (`RULE_SYN_WITHOUT_ACK`)
+## 5. Endpoint Traffic Concentration
 
-- **Purpose**: Identifies endpoints attempting connections without completing handshakes (SYN flood probes, stealth scanning).
-- **Formula / Logic**:
-  For source endpoint $s$, count total TCP packets $N_{\text{TCP}}$ and packets with the SYN flag set while ACK is clear:
-  $$R_{\text{SYN}} = \frac{N_{\text{SYN\_NO\_ACK}}}{N_{\text{TCP}}}$$
-  An alert triggers if:
-  $$N_{\text{TCP}} \ge \text{syn\_min\_packets} \quad \text{and} \quad R_{\text{SYN}} \ge \text{syn\_ratio\_threshold}$$
-- **Default Configuration**:
-  - `syn_ratio_threshold`: `0.75` (75.0%)
-  - `syn_min_packets`: `10` packets
-- **Severity**: `HIGH` if ratio $\ge 0.90$, else `MEDIUM`.
-- **Benign False Positives**: Asymmetric routing (return ACK packets travel over a different network interface not captured in this file), network congestion causing packet drop, connection attempts to an offline local printer.
+This rule uses **source-originated share**, not endpoint participation:
 
----
+```text
+source share = packets_sent_for_endpoint / total_captured_packets
+```
 
-### Rule 4: Traffic Volume Statistical Deviation (`RULE_VOLUME_DEVIATION`)
+It evaluates captures meeting `traffic_concentration_min_packets` and alerts when the share reaches `traffic_concentration_threshold`. Source-originated shares across endpoints cannot exceed 100%. Endpoint participation counts a packet at both ends and is a separate metric; see [data_model.md](data_model.md).
 
-- **Purpose**: Flags discrete capture intervals whose byte volume deviates significantly from the capture's baseline mean.
-- **Formula / Logic**:
-  Divide the capture into $M$ time buckets of width $\Delta t$. Let $b_i$ be the byte count of bucket $i$.
-  If $M \ge \text{min\_intervals}$ and sample standard deviation $\sigma > 0$:
-  $$\mu = \frac{1}{M}\sum_{i=1}^M b_i, \quad \sigma = \sqrt{\frac{1}{M - 1}\sum_{i=1}^M (b_i - \mu)^2}$$
-  Compute standard score ($Z$-score) for interval $i$:
-  $$Z_i = \frac{b_i - \mu}{\sigma}$$
-  An alert triggers if:
-  $$Z_i > \text{volume\_deviation\_zscore}$$
-- **Default Configuration**:
-  - `volume_deviation_zscore`: `+2.5`
-  - `volume_deviation_min_intervals`: `4` intervals
-  - `volume_deviation_interval_sec`: `2.0` seconds
-- **Severity**: `HIGH` if $Z \ge 4.0$, else `MEDIUM`.
-- **Benign False Positives**: Scheduled backup initiation, video streaming keyframe load, software updates.
+Central servers, gateways, resolvers, and narrowly targeted captures commonly concentrate traffic.
 
----
+## 6. Repeated Communication Pattern
 
-### Rule 5: Endpoint Traffic Concentration (`RULE_TRAFFIC_CONCENTRATION`)
+Groups traffic by source, destination, and destination port, then evaluates packet counts in a sliding `repeated_comm_window_sec` window. An alert is generated when the maximum count exceeds `repeated_comm_threshold`. Keep-alives, polling, and synchronization traffic may trigger it.
 
-- **Purpose**: Identifies network topologies where one endpoint accounts for a disproportionate majority of all capture activity.
-- **Formula / Logic**:
-  Let $N_{\text{total}}$ be the total packets in the capture. For each endpoint $e$ with packet volume $N_e$:
-  $$C_e = \frac{N_e}{N_{\text{total}}}$$
-  An alert triggers if:
-  $$N_{\text{total}} \ge \text{min\_packets} \quad \text{and} \quad C_e \ge \text{threshold}$$
-- **Default Configuration**:
-  - `traffic_concentration_threshold`: `0.50` (50.0%)
-  - `traffic_concentration_min_packets`: `30` packets
-- **Severity**: `MEDIUM` if ratio $\ge 0.80$, else `LOW`.
-- **Benign False Positives**: Default gateway routers, DNS forwarders, targeted packet captures focused on a single host.
+## Interpretation
 
----
+Alerts include rule name, severity, observed value, threshold, explanation, and supporting metadata where available. Treat an alert as a lead for packet/flow review. Validate it against the capture point, capture duration, expected application behavior, and other evidence.
 
-### Rule 6: Repeated Communication Pattern (`RULE_REPEATED_COMMUNICATION`)
-
-- **Purpose**: Identifies rapid repetitive bursts between specific source and destination pairs.
-- **Formula / Logic**:
-  Group packets by tuple $(src, dst, dst\_port)$. Count occurrences within window $\Delta t$.
-  An alert triggers if:
-  $$\max(\text{count}) > \text{threshold}$$
-- **Default Configuration**:
-  - `repeated_comm_threshold`: `25` packets
-  - `repeated_comm_window_sec`: `5.0` seconds
-- **Severity**: `MEDIUM` if count $\ge 2 \times \text{threshold}$, else `LOW`.
-- **Benign False Positives**: Application keep-alives, rapid polling loops, NTP synchronization requests.
+The repository does not currently implement dedicated SYN flood, retransmission, failed-connection, ICMP burst, DNS NXDOMAIN, or packet-size anomaly rules. Those are possible extensions, not current features.
