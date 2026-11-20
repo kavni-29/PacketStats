@@ -49,7 +49,7 @@ class PacketStatsGUI(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
-        self.title("NetScope — Network Traffic Analyzer")
+        self.title("PacketStats — Network Traffic Analyzer")
         self.geometry("1320x860")
         self.minsize(1040, 700)
 
@@ -166,7 +166,7 @@ class PacketStatsGUI(tk.Tk):
 
         lbl_title = tk.Label(
             header,
-            text="NetScope — Network Traffic Analyzer",
+            text="PacketStats — Network Traffic Analyzer",
             font=(self.ui_font, 16, "bold"),
             fg=self.c_primary,
             bg="#E8EFEB",

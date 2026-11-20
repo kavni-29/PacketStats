@@ -1,7 +1,7 @@
 {
   "metadata": {
     "generated_at_utc": "2026-11-18T23:57:14.019388+00:00",
-    "generator": "NetScope 1.0.0",
+    "generator": "PacketStats 1.0.0",
     "capture_file": "live interface: \\Device\\NPF_{ADD140DE-5E06-4124-A825-E49E71690E5F}",
     "file_size_bytes": 0
   },
@@ -606,5 +606,5 @@
       }
     }
   ],
-  "defensive_security_notice": "NetScope is an offline defensive analysis tool. Anomaly indicators signify statistical deviations or traffic patterns requiring triage; they do not constitute conclusive evidence of hostile intrusion."
+  "defensive_security_notice": "PacketStats is an offline defensive analysis tool. Anomaly indicators signify statistical deviations or traffic patterns requiring triage; they do not constitute conclusive evidence of hostile intrusion."
 }

@@ -2,7 +2,7 @@
 
 ## Scope
 
-NetScope is a Python 3.10+ application with a Scapy analysis core, a Tkinter/ttk desktop interface, a CLI, and local export utilities. Offline parsing and live capture share packet, flow, statistics, and detection models. Live capture is passive: NetScope does not transmit or inject packets.
+PacketStats is a Python 3.10+ application with a Scapy analysis core, a Tkinter/ttk desktop interface, a CLI, and local export utilities. Offline parsing and live capture share packet, flow, statistics, and detection models. Live capture is passive: PacketStats does not transmit or inject packets.
 
 ## Package map
 

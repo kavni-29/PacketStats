@@ -1,8 +1,8 @@
 # Detection rules
 
-NetScope currently implements six deterministic heuristic rules. A triggered rule means the observed values crossed a configured threshold; it does not prove malicious activity. Capture duration, direction visibility, sampling, and ordinary application behavior affect results.
+PacketStats currently implements six deterministic heuristic rules. A triggered rule means the observed values crossed a configured threshold; it does not prove malicious activity. Capture duration, direction visibility, sampling, and ordinary application behavior affect results.
 
-Rules are evaluated by `DetectionEngine` in `netscope/detectors.py`. Thresholds and windows are defined in `DetectionConfig` (`netscope/config.py`) and can be loaded from JSON. See `python -m netscope.cli --help` and the config class for available options.
+Rules are evaluated by `DetectionEngine` in `packetstats/detectors.py`. Thresholds and windows are defined in `DetectionConfig` (`packetstats/config.py`) and can be loaded from JSON. See `python -m packetstats.cli --help` and the config class for available options.
 
 ## 1. High Packet Rate Observation
 

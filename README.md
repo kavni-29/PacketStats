@@ -1,6 +1,6 @@
-# NetScope
+# PacketStats
 
-NetScope is a Python desktop and command-line application for offline PCAP/PCAPNG analysis and optional live packet capture. It parses packet metadata, aggregates bidirectional flows, calculates traffic statistics, evaluates six explainable heuristic rules, and exports reports.
+PacketStats is a Python desktop and command-line application for offline PCAP/PCAPNG analysis and optional live packet capture. It parses packet metadata, aggregates bidirectional flows, calculates traffic statistics, evaluates six explainable heuristic rules, and exports reports.
 
 It does not decrypt encrypted traffic, inject packets, or establish that an alert is an attack. Use it only on captures and networks you are authorized to inspect.
 
@@ -31,8 +31,8 @@ Clone the repository and create an isolated environment from the repository root
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/kavni-29/netscope.git
-Set-Location netscope
+git clone https://github.com/kavni-29/packetstats.git
+Set-Location packetstats
 py -3.10 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -49,22 +49,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ### Linux and macOS
 
 ```bash
-git clone https://github.com/kavni-29/netscope.git
-cd netscope
+git clone https://github.com/kavni-29/packetstats.git
+cd packetstats
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-Alternatively, install runtime requirements with `pip install -r requirements.txt`; install pytest separately if you plan to run tests. The editable install also exposes the `netscope` command.
+Alternatively, install runtime requirements with `pip install -r requirements.txt`; install pytest separately if you plan to run tests. The editable install also exposes the `packetstats` command.
 
 ## Run the application
 
 ### Desktop GUI
 
 ```bash
-python -m netscope.gui
+python -m packetstats.gui
 ```
 
 Choose a PCAP/PCAPNG using **Browse**, then select **Analyse Capture**. The Packet Explorer, Flows, Endpoints, Anomaly Alerts, Visualisations, Reports, and Live Monitoring views are available in the notebook tabs.
@@ -74,7 +74,7 @@ Choose a PCAP/PCAPNG using **Browse**, then select **Analyse Capture**. The Pack
 Analyze the included sample capture and create reports:
 
 ```bash
-python -m netscope.cli --input samples/synthetic_demo.pcap --output reports/demo --charts
+python -m packetstats.cli --input samples/synthetic_demo.pcap --output reports/demo --charts
 ```
 
 On Windows PowerShell, the same command works with backslashes in paths. The `reports/` directory is local generated output and is ignored by Git.
@@ -82,11 +82,11 @@ On Windows PowerShell, the same command works with backslashes in paths. The `re
 Useful commands:
 
 ```bash
-python -m netscope.cli --help
-python -m netscope.cli inspect samples/synthetic_demo.pcap --limit 20
-python -m netscope.cli flows samples/synthetic_demo.pcap --top 10
-python -m netscope.cli alerts samples/synthetic_demo.pcap
-python -m netscope.cli interfaces
+python -m packetstats.cli --help
+python -m packetstats.cli inspect samples/synthetic_demo.pcap --limit 20
+python -m packetstats.cli flows samples/synthetic_demo.pcap --top 10
+python -m packetstats.cli alerts samples/synthetic_demo.pcap
+python -m packetstats.cli interfaces
 ```
 
 Generate the deterministic sample capture again:
@@ -97,11 +97,11 @@ python samples/generate_sample_pcap.py
 
 ## Live capture
 
-Install [Npcap](https://npcap.com/) on Windows, or the relevant libpcap/BPF backend on Linux/macOS. Restart the application after installing a driver. List interfaces with `python -m netscope.cli interfaces`, then select one in the GUI or pass its identifier to the CLI:
+Install [Npcap](https://npcap.com/) on Windows, or the relevant libpcap/BPF backend on Linux/macOS. Restart the application after installing a driver. List interfaces with `python -m packetstats.cli interfaces`, then select one in the GUI or pass its identifier to the CLI:
 
 ```bash
-python -m netscope.cli live --interface "<interface-id>" --duration 10 --record captures/session.pcapng
-python -m netscope.cli --input captures/session.pcapng --output reports/session
+python -m packetstats.cli live --interface "<interface-id>" --duration 10 --record captures/session.pcapng
+python -m packetstats.cli --input captures/session.pcapng --output reports/session
 ```
 
 Live capture observes traffic available at the selected capture point; it does not generate traffic. Raw capture recording is opt-in. Capture files may contain sensitive metadata and should be handled accordingly. Automated tests mock capture and do not verify a physical interface or driver.
@@ -124,12 +124,12 @@ Endpoint packet totals count participation at both ends of a packet and can sum 
 
 ## Known limitations
 
-NetScope is a student network analysis project, not a full protocol forensic suite. It does not currently provide dedicated TCP handshake or DNS transaction dashboards, capture-to-capture comparison, topology graphing, comprehensive protocol decoding, or all the advanced detectors described in possible future plans. GUI payload hex inspection, light/dark theme switching, and persistent theme preferences are also not implemented. Detection results are heuristics and can produce false positives. Encrypted application payloads are not decoded.
+PacketStats is a student network analysis project, not a full protocol forensic suite. It does not currently provide dedicated TCP handshake or DNS transaction dashboards, capture-to-capture comparison, topology graphing, comprehensive protocol decoding, or all the advanced detectors described in possible future plans. GUI payload hex inspection, light/dark theme switching, and persistent theme preferences are also not implemented. Detection results are heuristics and can produce false positives. Encrypted application payloads are not decoded.
 
 ## Repository map
 
 ```text
-netscope/       Application package (parser, flows, statistics, detectors, GUI, CLI)
+packetstats/       Application package (parser, flows, statistics, detectors, GUI, CLI)
 tests/          Automated unit and integration tests
 samples/        Synthetic PCAP generator and sample capture
 docs/           Architecture, deployment, data model, detection, and testing notes

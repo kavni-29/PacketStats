@@ -51,17 +51,17 @@ python samples/generate_sample_pcap.py
 Then run:
 
 ```bash
-python -m netscope.cli --input samples/synthetic_demo.pcap --output reports/repro --charts
+python -m packetstats.cli --input samples/synthetic_demo.pcap --output reports/repro --charts
 ```
 
 Review generated local files under `reports/repro/`. These include report exports and chart images. Timing fields can vary across runs and machines.
 
 ## Manual GUI and live-capture checks
 
-1. Run `python -m netscope.gui` and load the sample PCAP.
+1. Run `python -m packetstats.gui` and load the sample PCAP.
 2. Confirm summary, protocol rows, flows, endpoints, alerts, charts, and Packet Explorer rows appear.
 3. Select packets and verify the decoded header fields are consistent with the displayed packet.
 4. Export a report and confirm the selected output path contains the requested artifacts.
-5. For live capture only, install the platform backend, run `python -m netscope.cli interfaces`, select an authorized interface, capture briefly, stop, and parse the recorded PCAPNG offline.
+5. For live capture only, install the platform backend, run `python -m packetstats.cli interfaces`, select an authorized interface, capture briefly, stop, and parse the recorded PCAPNG offline.
 
 Manual live checks are platform-dependent and should be recorded separately from automated test results.

@@ -1,4 +1,4 @@
-# NetScope — Network Traffic Analysis Report
+# PacketStats — Network Traffic Analysis Report
 **Generated:** 2026-11-18 23:57:14 UTC  
 **Target Capture:** `live interface: \Device\NPF_{ADD140DE-5E06-4124-A825-E49E71690E5F}` (0 bytes)  
 **Analysis Runtime:** 0.00 seconds  
@@ -181,6 +181,6 @@
 
 ## 8. Defensive Security Scope & Analytical Limitations
 
-- **Metadata vs Payload:** NetScope inspects packet headers and flow timing. Transport Layer Security (TLS) and application encryption prevent payload inspection; encrypted application content is neither decrypted nor inferred.
-- **Flow Grouping vs State Reconstruction:** NetScope groups packets into bidirectional flows. It does not perform full TCP stack emulation, connection state reconstruction, or retransmission tracking.
+- **Metadata vs Payload:** PacketStats inspects packet headers and flow timing. Transport Layer Security (TLS) and application encryption prevent payload inspection; encrypted application content is neither decrypted nor inferred.
+- **Flow Grouping vs State Reconstruction:** PacketStats groups packets into bidirectional flows. It does not perform full TCP stack emulation, connection state reconstruction, or retransmission tracking.
 - **Explainable Indicators vs Definitive Attribution:** Anomaly rules identify traffic that departs from expected baselines or matches scanning heuristics. High volume, destination port diversity, and high SYN ratios can be caused by legitimate applications, network drops, or asymmetric routing.
